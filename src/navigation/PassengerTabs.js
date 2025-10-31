@@ -1,6 +1,9 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import ClientHomeScreen from '../screens/client/dashboard/ClientHomeScreen';
+import PassengerRides from '../screens/client/dashboard/PassengerRides';
+import PassengerNoifications from '../screens/client/dashboard/PassengerNotifications';
+import PassengerProfile from '../screens/client/dashboard/PassengerProfile';
+import PassengerHomeScreen from '../screens/client/dashboard/PassngerHomeScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -14,7 +17,6 @@ export default function UserTabs() {
         tabBarStyle: {
           height: 60,
           paddingVertical: 6,
-          // backgroundColor: '#fee1c7ff',
         },
         tabBarLabelStyle: { fontSize: 12 },
         tabBarIconStyle: { marginBottom: -2 },
@@ -22,7 +24,7 @@ export default function UserTabs() {
     >
       <Tab.Screen
         name="Home"
-        component={ClientHomeScreen}
+        component={PassengerHomeScreen}
         options={{
           tabBarLabel: 'Home',
           tabBarIcon: ({ color, size }) => (
@@ -32,9 +34,9 @@ export default function UserTabs() {
       />
       <Tab.Screen
         name="MyRide"
-        component={ClientHomeScreen}
+        component={PassengerRides}
         options={{
-          tabBarLabel: 'MyRide',
+          tabBarLabel: 'Rides',
           tabBarIcon: ({ color, size }) => (
             <Icon name="history" size={24} color={color} />
           ),
@@ -42,7 +44,7 @@ export default function UserTabs() {
       />
       <Tab.Screen
         name="Notification"
-        component={ClientHomeScreen}
+        component={PassengerNoifications}
         options={{
           tabBarLabel: 'Notification',
           tabBarIcon: ({ color, size }) => (
@@ -52,7 +54,7 @@ export default function UserTabs() {
       />
       <Tab.Screen
         name="Profile"
-        component={ClientHomeScreen}
+        component={PassengerProfile}
         options={{
           tabBarLabel: 'Profile',
           tabBarIcon: ({ color, size }) => (

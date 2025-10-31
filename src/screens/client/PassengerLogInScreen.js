@@ -15,8 +15,9 @@ import Api from '../../api/Api';
 import { theme } from '../../theme/theme';
 import { useDripsyTheme } from 'dripsy';
 import { useToast } from '../../context/ToastContext';
+import * as Keychain from 'react-native-keychain';
 
-export default function ClientLogInScreen({ navigation }) {
+export default function PassengerLogInScreen({ navigation }) {
   const { showToast } = useToast();
   const { login } = useAuth();
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -50,12 +51,6 @@ export default function ClientLogInScreen({ navigation }) {
     }
 
     try {
-      // const response = await axios.get(
-      //   'https://wordier-granville-driftingly.ngrok-free.dev/api/auth/sendotp',
-      //   {
-      //     params: { phoneNumber, isRegistration: false, userType: 'passenger' },
-      //   },
-      // );
       const response = await Api.get('/auth/sendotp', {
         params: { phoneNumber, isRegistration: false, userType: 'passenger' },
       });
@@ -94,11 +89,21 @@ export default function ClientLogInScreen({ navigation }) {
       if (data.success) {
         showToast(data?.message, 'success');
         login(data?.phone, data?.userType);
-        navigation.navigate('ClientHomeScreen');
+        await Keychain.setGenericPassword(
+          'ukdrive_user',
+          JSON.stringify({
+            accessToken: data.tokens.accessToken,
+            refreshToken: data.tokens.refreshToken,
+            phoneNumber: data.phone,
+            userType: data.userType,
+            id: data.id,
+          }),
+        );
+        navigation.navigate('PassengerHomeScreen');
       } else {
         showToast(data?.message || 'Authentication Failed !', 'error');
       }
-    } catch {
+    } catch (err) {
       showToast(
         err?.response?.data?.message || 'Error while sending the OTP !',
         'error',

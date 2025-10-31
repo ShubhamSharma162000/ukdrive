@@ -21,7 +21,6 @@ import {
   LogOut,
   Smile,
 } from 'lucide-react-native';
-import DriverTabs from './DriverTabs';
 
 const Drawer = createDrawerNavigator();
 
@@ -66,12 +65,10 @@ const CustomDrawerContent = props => {
         </View>
       </View>
 
-      {/* 🔸 Drawer Items */}
       <View style={{ flex: 1, backgroundColor: '#fff', paddingTop: 10 }}>
         <DrawerItemList {...props} />
       </View>
 
-      {/* 🔸 Footer Section */}
       <View style={{ padding: 20, borderTopWidth: 1, borderTopColor: '#eee' }}>
         <TouchableOpacity
           onPress={() => console.log('Sign out pressed')}
@@ -87,7 +84,7 @@ const CustomDrawerContent = props => {
   );
 };
 
-export const DriverDrawerOverlay = () => (
+export const UsersDrawerOverlay = () => (
   <Drawer.Navigator
     drawerContent={props => <CustomDrawerContent {...props} />}
     screenOptions={{
@@ -101,7 +98,7 @@ export const DriverDrawerOverlay = () => (
   >
     <Drawer.Screen
       name="HomeTabs"
-      component={DriverTabs}
+      component={UserTabs}
       options={{
         drawerLabel: 'Home',
         drawerIcon: ({ color, size }) => <Home color={color} size={size} />,

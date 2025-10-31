@@ -1,9 +1,8 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import ClientHomeScreen from '../screens/client/ClientHomeScree';
 import { RoleSelectionScreen } from '../screens/RoleSelectionScreen';
-import ClientLogInScreen from '../screens/client/ClientLogInScreen';
-import ClientSignUpScreen from '../screens/client/ClientSignUpScreen';
 import DriverLogInScreen from '../screens/driver/DriverLogInScreen';
+import PassengerLogInScreen from '../screens/client/PassengerLogInScreen';
+import PassengerSignUpScreen from '../screens/client/PassengerSignUpScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -17,12 +16,12 @@ export default function AuthStack() {
       />
       <Stack.Screen
         name="ClientLogIn"
-        component={ClientLogInScreen}
+        component={PassengerLogInScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
         name="ClientSignUp"
-        component={ClientSignUpScreen}
+        component={PassengerSignUpScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
@@ -37,12 +36,12 @@ export default function AuthStack() {
       />
       <Stack.Screen
         name="HomeScreen"
-        component={ClientHomeScreen}
+        component={PassengerLogInScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="ClientHomeScreen"
-        component={ClientHomeScreen}
+        name="PassengerLogInScreen"
+        component={PassengerLogInScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

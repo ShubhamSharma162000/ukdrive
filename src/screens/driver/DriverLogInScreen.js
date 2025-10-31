@@ -11,6 +11,8 @@ import {
 import { RFValue } from 'react-native-responsive-fontsize';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, Image } from 'dripsy';
+import { useToast } from '../../context/ToastContext';
+import * as Keychain from 'react-native-keychain';
 
 export default function DriverLogInScreen({ navigation }) {
   const { login } = useAuth();
@@ -21,6 +23,7 @@ export default function DriverLogInScreen({ navigation }) {
   const [verifyOtpLoading, setVerifyOtpLoading] = useState(false);
   const [sessionId, setSessionId] = useState();
   const inputRefs = useRef([]);
+  const { showToast } = useToast();
 
   const handleOTPChange = (text, index) => {
     if (!/^\d*$/.test(text)) return;
@@ -49,35 +52,37 @@ export default function DriverLogInScreen({ navigation }) {
 
       if (data.success) {
         setSessionId(data.sessionId);
-        // showToast('success', 'Success!', data.message, 'top', 3000);
+        showToast(data?.message, 'success');
         setOtpInput(true);
       } else {
-        // showToast(
-        //   'error',
-        //   'Error!',
-        //   data.message || 'Failed to send OTP',
-        //   'top',
-        //   3000,
-        // );
+        showToast(data?.message || 'Error while sending OTP !', 'error');
       }
     } catch (err) {
-      // showToast('error', 'Error!', 'Failed to send OTP', 'top', 3000);
+      showToast(
+        err?.response?.data?.message || 'Error while sending OTP !',
+        'error',
+      );
     } finally {
       setOtpLoading(false);
     }
   };
 
   const verifyOTP = async () => {
-    if (otpValue.length !== 6) {
-      alert('Please enter a valid 6-digit OTP');
-      return;
-    }
-    setVerifyOtpLoading(true);
     try {
+      console.log('Starting verifyOTP...');
+      if (otpValue.length !== 6) {
+        console.log('Invalid OTP length');
+        alert('Please enter a valid 6-digit OTP');
+        return;
+      }
+
+      setVerifyOtpLoading(true);
+      console.log('Sending API request...');
       const response = await Api.post('/auth/verifyotp', {
         otpValue,
         sessionId,
       });
+      console.log('API response received:', response.data);
       const data = response.data;
 
       if (
@@ -85,21 +90,40 @@ export default function DriverLogInScreen({ navigation }) {
         data?.tokens?.accessToken &&
         data?.tokens?.refreshToken
       ) {
-        // await saveItem logic
-        login(data?.phone, data?.userType, data?.id);
-        navigation.navigate('DriverHome');
+        console.log('Login data:', data?.phone, data?.userType, data?.id);
+        login(data?.phone, data?.userType, data?.id || '123456789');
+
+        console.log('Saving tokens...');
+        await Keychain.setGenericPassword(
+          'ukdrive_user',
+          JSON.stringify({
+            accessToken: data.tokens.accessToken,
+            refreshToken: data.tokens.refreshToken,
+            phoneNumber: data.phone,
+            userType: data.userType,
+            id: data.id,
+          }),
+        );
+        console.log('Navigating to tabs...');
+        navigation.navigate('DriverDrawerOverlay', {
+          screen: 'HomeTabs',
+          params: { screen: 'DriverHome' },
+        });
+
+        console.log('OTP Success — Showing toast');
+        showToast(data?.message, 'success');
       } else {
-        // showToast('error', 'Error!', 'Authentication failed.', 'top', 3000);
+        console.log('Auth failed:', data);
+        showToast(data?.message || 'Authentication Failed !', 'error');
       }
     } catch (err) {
-      // showToast(
-      //   'error',
-      //   'Error!',
-      //   'Login failed. Please try again.',
-      //   'top',
-      //   3000,
-      // );
+      console.log('Caught error:', err);
+      showToast(
+        err?.response?.data?.message || 'Error verifying OTP!',
+        'error',
+      );
     } finally {
+      console.log('VerifyOTP finished');
       setVerifyOtpLoading(false);
     }
   };
@@ -164,7 +188,6 @@ export default function DriverLogInScreen({ navigation }) {
               {' '}
               <View
                 sx={{
-                  // backgroundColor: '#9E7BF1',
                   padding: 10,
                   borderRadius: 10,
                   mr: 2,
@@ -177,8 +200,7 @@ export default function DriverLogInScreen({ navigation }) {
                   flex: 1,
                   fontSize: 18,
                   color: 'black',
-                  borderBottomWidth: 1,
-                  borderBottomColor: '#9E7BF1',
+                  textAlign: 'center',
                 }}
                 keyboardType="phone-pad"
                 maxLength={10}
@@ -201,7 +223,7 @@ export default function DriverLogInScreen({ navigation }) {
                 paddingHorizontal: 30,
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: '35%',
+                width: '40%',
                 shadowColor: '#000',
                 shadowOpacity: 0.4,
                 shadowRadius: 8,
@@ -240,7 +262,7 @@ export default function DriverLogInScreen({ navigation }) {
                         marginRight: index !== 5 ? 8 : 0,
                         borderRadius: 6,
                         width: 30,
-                        height: 40,
+                        height: 50,
                         textAlign: 'center',
                         fontSize: 18,
                         fontWeight: 'bold',

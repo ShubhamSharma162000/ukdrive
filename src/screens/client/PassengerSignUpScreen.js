@@ -15,8 +15,9 @@ import Api from '../../api/Api';
 import { theme } from '../theme/theme';
 import { useDripsyTheme } from 'dripsy';
 import { useToast } from '../../context/ToastContext';
+import * as Keychain from 'react-native-keychain';
 
-export default function ClientSignUpScreen({ navigation }) {
+export default function PassengerSignUpScreen({ navigation }) {
   const { login } = useAuth();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otpLoading, setOtpLoading] = useState(false);
@@ -54,6 +55,7 @@ export default function ClientSignUpScreen({ navigation }) {
       });
       const data = response?.data;
       if (data?.success) {
+        console.log(data);
         setSessionId(data?.sessionId);
         showToast(data?.message, 'success');
         setOtpInput(true);
@@ -85,7 +87,17 @@ export default function ClientSignUpScreen({ navigation }) {
       if (data.success) {
         showToast(data?.message, 'success');
         login(data?.phone, data?.userType);
-        navigation.navigate('ClientHomeScreen');
+        await Keychain.setGenericPassword(
+          'ukdrive_user',
+          JSON.stringify({
+            accessToken: data.tokens.accessToken,
+            refreshToken: data.tokens.refreshToken,
+            phoneNumber: data.phone,
+            userType: data.userType,
+            id: data.id,
+          }),
+        );
+        navigation.navigate('PassengerHomeScreen');
       } else {
         showToast(data?.message || 'Authentication Failed !', 'error');
       }

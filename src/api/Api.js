@@ -1,22 +1,18 @@
-// import { deleteItem, getItem } from '@/src/storage/storage';
 import axios from 'axios';
-// import * as SecureStore from 'expo-secure-store';
+import * as Keychain from 'react-native-keychain';
+
 let isRefreshing = false;
 let failedQueue = [];
 
 const processQueue = (error, token = null) => {
   failedQueue.forEach(prom => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
+    if (error) prom.reject(error);
+    else prom.resolve(token);
   });
   failedQueue = [];
 };
 
 const Api = axios.create({
-  // baseURL: 'https://ukdrive-server.onrender.com/api',
   baseURL: 'https://wordier-granville-driftingly.ngrok-free.dev/api',
   headers: {
     'Content-Type': 'application/json',
@@ -25,10 +21,17 @@ const Api = axios.create({
 
 Api.interceptors.request.use(
   async config => {
-    // const token = await getItem('accessToken');
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+    try {
+      const credentials = await Keychain.getGenericPassword();
+      if (credentials && credentials.username === 'authTokens') {
+        const tokens = JSON.parse(credentials.password);
+        if (tokens.accessToken) {
+          config.headers.Authorization = `Bearer ${tokens.accessToken}`;
+        }
+      }
+    } catch (error) {
+      console.warn('Error retrieving token from Keychain:', error);
+    }
     return config;
   },
   error => Promise.reject(error),
@@ -55,21 +58,24 @@ Api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // const refreshToken = await getItem('refreshToken');
+        const credentials = await Keychain.getGenericPassword();
+        if (!credentials || credentials.username !== 'authTokens')
+          throw new Error('No refresh token available');
 
-        if (!refreshToken) throw new Error('No refresh token available');
+        const tokens = JSON.parse(credentials.password);
+        const { refreshToken } = tokens;
 
         const response = await axios.post(
-          'https://your-api-url.com/api/auth/refresh',
-          {
-            refreshToken,
-          },
+          'https://wordier-granville-driftingly.ngrok-free.dev/api/auth/refresh',
+          { refreshToken },
         );
 
         const { accessToken, refreshToken: newRefreshToken } = response.data;
 
-        // await SecureStore.setItemAsync('accessToken', accessToken);
-        // await SecureStore.setItemAsync('refreshToken', newRefreshToken);
+        await Keychain.setGenericPassword(
+          'authTokens',
+          JSON.stringify({ accessToken, refreshToken: newRefreshToken }),
+        );
 
         processQueue(null, accessToken);
 
@@ -77,16 +83,7 @@ Api.interceptors.response.use(
         return Api(originalRequest);
       } catch (err) {
         processQueue(err, null);
-
-        // Clear tokens on refresh failure
-        // await deleteItem('accessToken');
-        // await deleteItem('refreshToken');
-
-        // Optional: Notify user & navigate to login screen
-        // Example (depends on your navigation setup)
-        // Alert.alert('Session expired', 'Please log in again.');
-        // navigation.reset({ index: 0, routes: [{ name: 'LoginScreen' }] });
-
+        await Keychain.resetGenericPassword();
         return Promise.reject(err);
       } finally {
         isRefreshing = false;

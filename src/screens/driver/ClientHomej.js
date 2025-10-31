@@ -1,7 +1,7 @@
 // import Api from '../../../api/Api';
 import { Button, StyleSheet, Text, View } from 'react-native';
 
-const ClientHomeScreen = () => {
+const PassengerLogInScreen = () => {
   const handlePress = async () => {
     // const response = await Api.get('/auth/test');
     console.log('hello');
@@ -30,4 +30,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ClientHomeScreen;
+export default PassengerLogInScreen;

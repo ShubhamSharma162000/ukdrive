@@ -1,6 +1,6 @@
 import { Button, StyleSheet, Text, View } from 'react-native';
 
-const ClientHomeScreen = () => {
+const PassengerLogInScreen = () => {
   const handlePress = async () => {
     console.log('response');
   };
@@ -28,4 +28,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ClientHomeScreen;
+export default PassengerLogInScreen;

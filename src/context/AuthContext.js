@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import * as Keychain from 'react-native-keychain';
 
 const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
@@ -13,10 +14,14 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const loadUserData = async () => {
       try {
-        // const storedPhone = await SecureStore.getItemAsync('userPhone');
-        // const storedUserType = await SecureStore.getItemAsync('userType');
-        const storedPhone = await AsyncStorage.getItem('phoneNumber');
-        const storedUserType = await SAsyncStorage.getItem('userType');
+        const credentials = await Keychain.getGenericPassword();
+        console.log(credentials);
+        const storedData = JSON.parse(credentials.password);
+        console.log(storedData);
+        const storedPhone = storedData.phoneNumber;
+        console.log(storedPhone);
+        const storedUserType = storedData.userType;
+        console.log(storedUserType);
         if (storedPhone && storedUserType) {
           setPhoneNumber(storedPhone);
           setUserType(storedUserType);
@@ -37,8 +42,6 @@ export const AuthProvider = ({ children }) => {
       setUserType(userType);
       setUser({ phoneNumber, userType, id });
       setId(id);
-      console.log(phoneNumber, userType, id);
-      console.log('drivers login ');
     } catch (e) {
       console.error('Failed to save user data:', e);
     }
@@ -46,8 +49,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      //   await SecureStore.deleteItemAsync('userPhone');
-      //   await SecureStore.deleteItemAsync('userType');
+      await Keychain.resetGenericPassword();
       setPhoneNumber(null);
       setUserType(null);
       setUser(null);
