@@ -5,32 +5,22 @@ import {
   DrawerItem,
 } from '@react-navigation/drawer';
 import { View, Text, TouchableOpacity } from 'react-native';
-import PassengerTabs from './PassengerTabs';
-import Testing from '../screens/client/Testing';
 import { Image } from 'dripsy';
+import PassengerTabs from './PassengerTabs';
 import {
-  Car,
   Clock,
-  Bell,
   Wallet,
   Shield,
   LifeBuoy,
-  HelpCircle,
   FileText,
   Globe,
   LogOut,
   Smile,
+  Home,
+  Languages,
 } from 'lucide-react-native';
-import PassengerRideHistory from '../screens/client/drawer/PassengerRideHistory';
-import PassengerNoifications from '../screens/client/dashboard/PassengerNotifications';
-import PassengerWallet from '../screens/client/drawer/PassengerWallet';
-import PassengerSafetySettings from '../screens/client/drawer/PassengerSafetySettings';
-import PassengerHelpSupport from '../screens/client/drawer/PassengerHelpSupport';
-import PassengerFAQ from '../screens/client/drawer/PassengerFAQ';
-import PrivacyPolicyScreen from '../screens/client/drawer/PrivacyPolicyScreen';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
-import PassengerProfile from '../screens/client/dashboard/PassengerProfile';
 
 const Drawer = createDrawerNavigator();
 
@@ -45,145 +35,109 @@ function CustomDrawerContent(props) {
     setShowLanguageOptions(false);
   };
 
-  const drawerItemStyle = {
-    marginVertical: -8, // reduces space between items
-    paddingVertical: 0, // removes internal padding
-  };
-
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: '#f57c00',
-        paddingTop: 0,
-      }}
-    >
+    <DrawerContentScrollView {...props} contentContainerStyle={{ flex: 1 }}>
       <TouchableOpacity
-        onPress={() => navigation.navigate('PassengerProfile')}
+        onPress={() =>
+          navigation.navigate('PassengerTabs', { screen: 'Profile' })
+        }
         style={{
-          paddingVertical: 20,
-          paddingHorizontal: 10,
           flexDirection: 'row',
           alignItems: 'center',
-          marginTop: 30,
-          gap: 20,
+          padding: 16,
+          backgroundColor: '#f57c00',
+          borderRadius: 16,
         }}
       >
         <Image
           source={{ uri: 'https://i.pravatar.cc/100' }}
-          style={{
-            width: 60,
-            height: 60,
-            borderRadius: 30,
-            marginRight: 15,
-          }}
+          style={{ width: 56, height: 56, borderRadius: 28, marginRight: 12 }}
         />
         <View>
-          <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>
-            {t('John Doe')}
-          </Text>
-          <Text style={{ color: '#fff', fontSize: 14, opacity: 0.8 }}>
-            {t('johndoe@email.com')}
+          <Text style={{ color: '#fff', fontWeight: '700' }}>John Doe</Text>
+          <Text style={{ color: '#fff', opacity: 0.85 }}>
+            johndoe@email.com
           </Text>
         </View>
       </TouchableOpacity>
 
-      <View
-        style={{
-          height: 1,
-          backgroundColor: '#ddd',
-          marginVertical: 8,
-        }}
-      />
-      <View style={{ flex: 1, gap: 2 }}>
+      <View style={{ marginTop: 8 }}>
         <DrawerItem
-          label="My Rides"
-          icon={({ color, size }) => <Car color="white" size={size} />}
-          onPress={() => {
-            navigation.navigate('PassengerTabs', { screen: 'MyRide' });
-          }}
-          labelStyle={{ fontSize: 14, color: '#fff' }}
-          style={drawerItemStyle}
+          label="Home"
+          icon={({ size }) => <Home size={size} />}
+          onPress={() =>
+            navigation.navigate('PassengerTabs', {
+              screen: 'HomeStack',
+              params: { screen: 'Home' },
+            })
+          }
         />
 
         <DrawerItem
           label="History"
-          icon={({ color, size }) => <Clock color="white" size={size} />}
-          onPress={() => {
-            navigation.navigate('PassengerRideHistory');
-          }}
-          labelStyle={{ fontSize: 14, color: '#fff' }}
-          style={drawerItemStyle}
-        />
-
-        <DrawerItem
-          label="Notifications"
-          icon={({ color, size }) => <Bell color="white" size={size} />}
-          onPress={() => {
+          icon={({ size }) => <Clock size={size} />}
+          onPress={() =>
             navigation.navigate('PassengerTabs', {
-              screen: 'PassengerNotification',
-            });
-          }}
-          labelStyle={{ fontSize: 14, color: '#fff' }}
-          style={drawerItemStyle}
+              screen: 'HomeStack',
+              params: { screen: 'RideHistory' },
+            })
+          }
         />
-
         <DrawerItem
-          label="My Wallet"
-          icon={({ color, size }) => <Wallet color="white" size={size} />}
-          onPress={() => {
-            navigation.navigate('PassengerWallet');
-          }}
-          labelStyle={{ fontSize: 14, color: '#fff' }}
-          style={drawerItemStyle}
+          label="Wallet"
+          icon={({ size }) => <Wallet size={size} />}
+          onPress={() =>
+            navigation.navigate('PassengerTabs', {
+              screen: 'HomeStack',
+              params: { screen: 'Wallet' },
+            })
+          }
         />
-
         <DrawerItem
           label="Safety Settings"
-          icon={({ color, size }) => <Shield color="white" size={size} />}
-          onPress={() => {
-            navigation.navigate('PassengerSafetySettings');
-          }}
-          labelStyle={{ fontSize: 14, color: '#fff' }}
-          style={drawerItemStyle}
+          icon={({ size }) => <Shield size={size} />}
+          onPress={() =>
+            navigation.navigate('PassengerTabs', {
+              screen: 'HomeStack',
+              params: { screen: 'Safety' },
+            })
+          }
         />
-
         <DrawerItem
           label="Help & Support"
-          icon={({ color, size }) => <LifeBuoy color="white" size={size} />}
-          onPress={() => {
-            navigation.navigate('PassengerHelpSupport');
-          }}
-          labelStyle={{ fontSize: 14, color: '#fff' }}
-          style={drawerItemStyle}
+          icon={({ size }) => <LifeBuoy size={size} />}
+          onPress={() =>
+            navigation.navigate('PassengerTabs', {
+              screen: 'HomeStack',
+              params: { screen: 'HelpSupport' },
+            })
+          }
         />
-
         <DrawerItem
           label="FAQ"
-          icon={({ color, size }) => <HelpCircle color="white" size={size} />}
-          onPress={() => {
-            navigation.navigate('PassengerFAQ');
-          }}
-          labelStyle={{ fontSize: 14, color: '#fff' }}
-          style={drawerItemStyle}
+          icon={({ size }) => <FileText size={size} />}
+          onPress={() =>
+            navigation.navigate('PassengerTabs', {
+              screen: 'HomeStack',
+              params: { screen: 'FAQ' },
+            })
+          }
         />
-
         <DrawerItem
           label="Privacy Policy"
-          icon={({ color, size }) => <FileText color="white" size={size} />}
-          onPress={() => {
-            navigation.navigate('PrivacyPolicyScreen');
-          }}
-          labelStyle={{ fontSize: 14, color: '#fff' }}
-          style={drawerItemStyle}
+          icon={({ size }) => <Globe size={size} />}
+          onPress={() =>
+            navigation.navigate('PassengerTabs', {
+              screen: 'HomeStack',
+              params: { screen: 'PrivacyPolicy' },
+            })
+          }
         />
-
         <DrawerItem
           label={t('language')}
-          icon={({ color, size }) => <Globe color="white" size={size} />}
+          icon={({ color, size }) => <Languages color="black" size={size} />}
           onPress={() => setShowLanguageOptions(!showLanguageOptions)}
-          labelStyle={{ fontSize: 14, color: '#fff' }}
-          style={drawerItemStyle}
+          labelStyle={{ fontSize: 14 }}
         />
 
         {showLanguageOptions && (
@@ -191,7 +145,7 @@ function CustomDrawerContent(props) {
             style={{
               marginLeft: 50,
               marginRight: 20,
-              backgroundColor: '#f5a75eff',
+              backgroundColor: '#f59739ff',
               paddingLeft: 20,
               paddingVertical: 8,
               borderRadius: 10,
@@ -212,29 +166,29 @@ function CustomDrawerContent(props) {
         )}
 
         <DrawerItem
-          label="Sign Out"
-          icon={({ color, size }) => <LogOut color="white" size={size} />}
-          onPress={() => logout()}
-          labelStyle={{ fontSize: 14, color: '#fff' }}
-          style={drawerItemStyle}
+          label="Logout"
+          icon={({ size }) => <LogOut size={size} />}
+          onPress={() => logout && logout()}
         />
-
         <View
           style={{
             height: 1,
-            backgroundColor: '#ddd',
+            backgroundColor: '#E0E0E0',
             marginVertical: 10,
           }}
         />
-
         <DrawerItem
-          label="Enjoy your ride with us!"
-          icon={({ color, size }) => <Smile color="white" size={size} />}
-          labelStyle={{ fontSize: 14, color: '#fff' }}
-          style={drawerItemStyle}
+          label="ENJOY YOUR RIDE WITH US ! "
+          icon={({ size }) => <Smile size={size} />}
+          onPress={() =>
+            navigation.navigate('PassengerTabs', {
+              screen: 'HomeStack',
+              params: { screen: 'Home' },
+            })
+          }
         />
       </View>
-    </View>
+    </DrawerContentScrollView>
   );
 }
 
@@ -245,25 +199,6 @@ export default function PassengerDrawerOverlay() {
       screenOptions={{ headerShown: false }}
     >
       <Drawer.Screen name="PassengerTabs" component={PassengerTabs} />
-      <Drawer.Screen
-        name="PassengerRideHistory"
-        component={PassengerRideHistory}
-      />
-      <Drawer.Screen name="PassengerProfile" component={PassengerProfile} />
-      <Drawer.Screen name="PassengerWallet" component={PassengerWallet} />
-      <Drawer.Screen
-        name="PassengerSafetySettings"
-        component={PassengerSafetySettings}
-      />
-      <Drawer.Screen
-        name="PassengerHelpSupport"
-        component={PassengerHelpSupport}
-      />
-      <Drawer.Screen name="PassengerFAQ" component={PassengerFAQ} />
-      <Drawer.Screen
-        name="PrivacyPolicyScreen"
-        component={PrivacyPolicyScreen}
-      />
     </Drawer.Navigator>
   );
 }

@@ -1,17 +1,14 @@
+import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import PassengerRides from '../screens/client/dashboard/PassengerRides';
-import PassengerNoifications from '../screens/client/dashboard/PassengerNotifications';
+import PassengerNotifications from '../screens/client/dashboard/PassengerNotifications';
 import PassengerProfile from '../screens/client/dashboard/PassengerProfile';
-import PassengerHomeScreen from '../screens/client/dashboard/PassngerHomeScreen';
-import { Image, View } from 'dripsy';
-import { Bell, CarFront, Home, User } from 'lucide-react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Home, Bell, User, CarFront } from 'lucide-react-native';
+import PassengerStack from './PassengerStack';
+import PassengerRides from '../screens/client/dashboard/PassengerRides';
 
 const Tab = createBottomTabNavigator();
 
 export default function PassengerTabs() {
-  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
       screenOptions={{
@@ -20,8 +17,7 @@ export default function PassengerTabs() {
         tabBarActiveTintColor: '#f1790fff',
         tabBarInactiveTintColor: '#151514ff',
         tabBarStyle: {
-          height: insets.bottom + 60,
-          paddingBottom: insets.bottom,
+          height: 60,
           paddingVertical: 4,
           backgroundColor: '#ffffff',
           padding: 4,
@@ -34,85 +30,37 @@ export default function PassengerTabs() {
       }}
     >
       <Tab.Screen
-        name="Home"
-        component={PassengerHomeScreen}
+        name="HomeStack"
+        component={PassengerStack}
         options={{
-          tabBarLabel: 'Home',
-
-          tabBarIcon: ({ focused }) => (
-            <View
-              style={{
-                backgroundColor: focused ? '#fdcd9fff' : 'transparent',
-                flex: 1,
-                padding: 18,
-                borderRadius: 12,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Home size={22} color={focused ? '#ea610cff' : '#060606ff'} />
-            </View>
-          ),
+          tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
+          title: 'Home',
         }}
       />
+
       <Tab.Screen
         name="MyRide"
         component={PassengerRides}
         options={{
-          tabBarLabel: 'Rides',
-          tabBarIcon: ({ focused }) => (
-            <View
-              style={{
-                backgroundColor: focused ? '#fdcd9fff' : 'transparent',
-                padding: 10,
-                borderRadius: 12,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <CarFront size={22} color={focused ? '#ea610cff' : '#060606ff'} />
-            </View>
-          ),
+          tabBarIcon: ({ color, size }) => <Bell color={color} size={size} />,
+          title: 'My Ride',
         }}
       />
+
       <Tab.Screen
-        name="PassengerNotification"
-        component={PassengerNoifications}
+        name="Notifications"
+        component={PassengerNotifications}
         options={{
-          tabBarLabel: 'Notifications',
-          tabBarIcon: ({ focused }) => (
-            <View
-              style={{
-                backgroundColor: focused ? '#fdcd9fff' : 'transparent',
-                padding: 10,
-                borderRadius: 12,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Bell size={22} color={focused ? '#ea610cff' : '#060606ff'} />
-            </View>
-          ),
+          tabBarIcon: ({ color, size }) => <Bell color={color} size={size} />,
+          title: 'Notifications',
         }}
       />
       <Tab.Screen
         name="Profile"
         component={PassengerProfile}
         options={{
-          tabBarLabel: 'Profile',
-          tabBarIcon: ({ focused }) => (
-            <View
-              style={{
-                backgroundColor: focused ? '#fdcd9fff' : 'transparent',
-                padding: 10,
-                borderRadius: 12,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <User size={22} color={focused ? '#ea610cff' : '#060606ff'} />
-            </View>
-          ),
+          tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
+          title: 'Profile',
         }}
       />
     </Tab.Navigator>

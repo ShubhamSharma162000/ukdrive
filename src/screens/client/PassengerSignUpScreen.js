@@ -112,7 +112,7 @@ export default function PassengerSignUpScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
       <StatusBar
         barStyle="light-content"
         backgroundColor="transparent"
@@ -128,7 +128,7 @@ export default function PassengerSignUpScreen({ navigation }) {
       >
         <Text
           style={{
-            fontSize: RFValue(24),
+            fontSize: RFValue(22),
             fontWeight: 'bold',
             color: '#F16100',
           }}

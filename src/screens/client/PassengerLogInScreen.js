@@ -114,226 +114,216 @@ export default function PassengerLogInScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
       <StatusBar
         barStyle="light-content"
         backgroundColor="transparent"
         translucent
       />
-      <ScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          alignItems: 'center',
-          padding: 20,
-        }}
-      >
-        <View sx={{ flex: 1, alignItems: 'center' }}>
+      <View sx={{ flex: 1, alignItems: 'center' }}>
+        <Text
+          sx={{
+            fontSize: RFValue(34),
+            fontWeight: 'bold',
+            color: theme.colors.passengerTheme,
+            mt: 20,
+            mb: 50,
+          }}
+        >
+          Passenger LogIn
+        </Text>
+        <Image
+          source={require('../../../src/assets/images/passengerLogIn.png')}
+          resizeMode="contain"
+        />
+        <View sx={{ width: '90%', mb: 4 }}>
           <Text
             sx={{
-              fontSize: RFValue(34),
-              fontWeight: 'bold',
               color: theme.colors.passengerTheme,
-              mt: 20,
-              mb: 50,
+              fontSize: RFValue(18),
+              fontWeight: 'bold',
+              mb: 20,
+              mt: 40,
+              textAlign: 'center',
             }}
           >
-            Passenger LogIn
+            Mobile Number
           </Text>
-          <Image
-            source={require('../../../src/assets/images/passengerLogIn.png')}
-            resizeMode="contain"
-          />
-          <View sx={{ width: '90%', mb: 4 }}>
+
+          <View
+            sx={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              borderWidth: 2,
+              borderColor: 'passengerTheme',
+              borderRadius: 10,
+              px: 3,
+              py: 2,
+              width: '100%',
+              borderRadius: 'xl',
+            }}
+          >
             <Text
               sx={{
-                color: theme.colors.passengerTheme,
-                fontSize: RFValue(18),
                 fontWeight: 'bold',
-                mb: 20,
-                mt: 40,
+                fontSize: RFValue(16),
+                color: 'black',
+              }}
+            >
+              +91
+            </Text>
+            <TextInput
+              style={{
+                flex: 1,
+                fontSize: RFValue(16),
+                color: '#1D0948',
                 textAlign: 'center',
               }}
-            >
-              Mobile Number
-            </Text>
-
-            <View
-              sx={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                borderWidth: 2,
-                borderColor: 'passengerTheme',
-                borderRadius: 10,
-                px: 3,
-                py: 2,
-                width: '100%',
-                borderRadius: 'xl',
-              }}
-            >
-              <Text
-                sx={{
-                  fontWeight: 'bold',
-                  fontSize: RFValue(16),
-                  color: 'black',
-                }}
-              >
-                +91
-              </Text>
-              <TextInput
-                style={{
-                  flex: 1,
-                  fontSize: RFValue(16),
-                  color: '#1D0948',
-                  textAlign: 'center',
-                }}
-                keyboardType="phone-pad"
-                maxLength={10}
-                value={phoneNumber}
-                onChangeText={text =>
-                  /^\d*$/.test(text) && setPhoneNumber(text)
-                }
-              />
-            </View>
+              keyboardType="phone-pad"
+              maxLength={10}
+              value={phoneNumber}
+              onChangeText={text => /^\d*$/.test(text) && setPhoneNumber(text)}
+            />
           </View>
+        </View>
 
-          {!otpInput && (
+        {!otpInput && (
+          <TouchableOpacity
+            onPress={sendOTP}
+            style={{
+              backgroundColor: theme.colors.passengerTheme,
+              paddingVertical: 12,
+            }}
+          ></TouchableOpacity>
+        )}
+
+        {!otpInput && (
+          <TouchableOpacity
+            onPress={sendOTP}
+            style={{
+              backgroundColor: theme.colors.passengerTheme,
+              paddingVertical: 12,
+              paddingHorizontal: 20,
+              borderRadius: 25,
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 180,
+              shadowColor: 'passengerTheme',
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 6,
+              marginTop: 20,
+            }}
+          >
+            {otpLoading ? (
+              <ActivityIndicator color="white" size="small" />
+            ) : (
+              <Text
+                style={{ color: 'white', fontWeight: 'bold', fontSize: 18 }}
+              >
+                Send OTP
+              </Text>
+            )}
+          </TouchableOpacity>
+        )}
+
+        {otpInput && (
+          <View sx={{ alignItems: 'center', mt: 30 }}>
+            <View
+              sx={{ flexDirection: 'row', justifyContent: 'center', mb: 4 }}
+            >
+              {inputs.map((_, index) => (
+                <TextInput
+                  key={index}
+                  ref={ref => (inputRefs.current[index] = ref)}
+                  value={otpValue[index] || ''}
+                  onChangeText={text => handleOTPChange(text, index)}
+                  keyboardType="number-pad"
+                  maxLength={1}
+                  style={{
+                    width: RFValue(30),
+                    height: RFValue(40),
+                    textAlign: 'center',
+                    fontSize: RFValue(18),
+                    fontWeight: 'bold',
+                    borderColor: 'passengerTheme',
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    marginRight: index !== 5 ? 10 : 0,
+                  }}
+                />
+              ))}
+            </View>
+
             <TouchableOpacity
-              onPress={sendOTP}
+              onPress={verifyOTP}
+              disabled={verifyOtpLoading}
               style={{
                 backgroundColor: theme.colors.passengerTheme,
-                paddingVertical: 12,
-                // paddingBlockEnd,
-              }}
-            ></TouchableOpacity>
-          )}
-
-          {!otpInput && (
-            <TouchableOpacity
-              onPress={sendOTP}
-              style={{
-                backgroundColor: theme.colors.passengerTheme,
+                borderRadius: 25,
                 paddingVertical: 12,
                 paddingHorizontal: 20,
-                borderRadius: 25,
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: 180,
-                shadowColor: 'passengerTheme',
+                shadowColor: '#000',
                 shadowOpacity: 0.3,
                 shadowRadius: 8,
                 elevation: 6,
                 marginTop: 20,
               }}
             >
-              {otpLoading ? (
-                <ActivityIndicator color="white" size="small" />
+              {verifyOtpLoading ? (
+                <ActivityIndicator color="white" />
               ) : (
                 <Text
-                  style={{ color: 'white', fontWeight: 'bold', fontSize: 18 }}
+                  style={{
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontSize: RFValue(16),
+                  }}
                 >
-                  Send OTP
+                  Verify
                 </Text>
               )}
             </TouchableOpacity>
-          )}
+          </View>
+        )}
+      </View>
 
-          {otpInput && (
-            <View sx={{ alignItems: 'center', mt: 30 }}>
-              <View
-                sx={{ flexDirection: 'row', justifyContent: 'center', mb: 4 }}
-              >
-                {inputs.map((_, index) => (
-                  <TextInput
-                    key={index}
-                    ref={ref => (inputRefs.current[index] = ref)}
-                    value={otpValue[index] || ''}
-                    onChangeText={text => handleOTPChange(text, index)}
-                    keyboardType="number-pad"
-                    maxLength={1}
-                    style={{
-                      width: RFValue(30),
-                      height: RFValue(40),
-                      textAlign: 'center',
-                      fontSize: RFValue(18),
-                      fontWeight: 'bold',
-                      borderColor: 'passengerTheme',
-                      borderWidth: 2,
-                      borderRadius: 6,
-                      marginRight: index !== 5 ? 10 : 0,
-                    }}
-                  />
-                ))}
-              </View>
-
-              <TouchableOpacity
-                onPress={verifyOTP}
-                disabled={verifyOtpLoading}
-                style={{
-                  backgroundColor: theme.colors.passengerTheme,
-                  borderRadius: 25,
-                  paddingVertical: 12,
-                  paddingHorizontal: 20,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  shadowColor: '#000',
-                  shadowOpacity: 0.3,
-                  shadowRadius: 8,
-                  elevation: 6,
-                  marginTop: 20,
-                }}
-              >
-                {verifyOtpLoading ? (
-                  <ActivityIndicator color="white" />
-                ) : (
-                  <Text
-                    style={{
-                      color: 'white',
-                      fontWeight: 'bold',
-                      fontSize: RFValue(16),
-                    }}
-                  >
-                    Verify
-                  </Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-
-        <View sx={{ mt: 6, alignItems: 'center' }}>
+      <View sx={{ mt: 6, alignItems: 'center' }}>
+        <Text
+          style={{
+            fontSize: RFValue(13),
+            color: '#333',
+            textAlign: 'center',
+          }}
+        >
+          Already have an account?{' '}
           <Text
+            onPress={() => navigation.navigate('ClientSignUp')}
             style={{
-              fontSize: RFValue(13),
-              color: '#333',
-              textAlign: 'center',
+              color: 'passengerTheme',
+              textDecorationLine: 'underline',
+              fontWeight: 'bold',
+              fontSize: RFValue(16),
             }}
           >
-            Already have an account?{' '}
-            <Text
-              onPress={() => navigation.navigate('ClientSignUp')}
-              style={{
-                color: 'passengerTheme',
-                textDecorationLine: 'underline',
-                fontWeight: 'bold',
-                fontSize: RFValue(16),
-              }}
-            >
-              Sign Up
-            </Text>
+            Sign Up
           </Text>
+        </Text>
 
-          <Text
-            style={{
-              color: '#13121299',
-              textAlign: 'center',
-              fontSize: RFValue(12),
-              marginTop: 4,
-            }}
-          >
-            By signing in, you agree to our Terms & Conditions.
-          </Text>
-        </View>
-      </ScrollView>
+        <Text
+          style={{
+            color: '#13121299',
+            textAlign: 'center',
+            fontSize: RFValue(12),
+            marginTop: 4,
+            marginBottom: 8,
+          }}
+        >
+          By signing in, you agree to our Terms & Conditions.
+        </Text>
+      </View>
     </SafeAreaView>
   );
 }

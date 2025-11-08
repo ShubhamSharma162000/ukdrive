@@ -142,7 +142,32 @@ export default function DriverLogInScreen({ navigation }) {
           }}
           showsVerticalScrollIndicator={false}
         >
-          <View sx={{ mt: 20, alignItems: 'center', mb: 40 }}>
+          <View
+            sx={{
+              position: 'absolute',
+              top: -140,
+              right: -160,
+              width: 250,
+              height: 250,
+              borderRadius: 200,
+              borderWidth: 2,
+              borderColor: 'rgba(241,100,6,0.92)',
+              transform: [{ scaleX: 1.4 }],
+              zIndex: 1,
+            }}
+          />
+
+          <View sx={{ position: 'absolute', top: 10, right: 10, zIndex: 10 }}>
+            <Image
+              source={require('../../assets/logo/UKDriveLogo.png')}
+              resizeMode="contain"
+              sx={{
+                width: 90,
+                height: 90,
+              }}
+            />
+          </View>
+          <View sx={{ mt: 70, alignItems: 'center', mb: 10 }}>
             <Text
               sx={{
                 fontSize: RFValue(24),
@@ -241,7 +266,7 @@ export default function DriverLogInScreen({ navigation }) {
               {otpLoading ? (
                 <ActivityIndicator color="#000" size="small" />
               ) : (
-                <Text style={{ fontWeight: 'bold', fontSize: 16 }}>
+                <Text style={{ fontWeight: 'bold', fontSize: 14 }}>
                   Send OTP
                 </Text>
               )}

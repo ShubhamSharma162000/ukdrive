@@ -4,6 +4,16 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <!-- required for read access on older devices -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+<!-- Android 13+ (API 33) if you need images or video -->
+     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+
+<!-- optional (not usually needed) -->
+     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
 
     <application
       android:name=".MainApplication"
