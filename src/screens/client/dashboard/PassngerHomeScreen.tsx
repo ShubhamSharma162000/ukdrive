@@ -23,8 +23,6 @@ import {
   ArrowRight,
   ArrowLeft,
   Search,
-  Bike,
-  Car,
   Layers,
   Clock,
 } from 'lucide-react-native';
@@ -35,6 +33,7 @@ import { useAuth } from '../../../context/AuthContext.js';
 import { LocationSelector } from '../utils/LocationSelecter';
 import polyline from '@mapbox/polyline';
 import { Picker } from '@react-native-picker/picker';
+import { useNavigation } from '@react-navigation/native';
 
 const GOOGLE_MAPS_APIKEY = 'AIzaSyDREKZTN8iX9SoqlfOatpmw0bIDWiXHGGo';
 
@@ -55,6 +54,7 @@ const truncateWords = (text = '', wordLimit = 10) => {
 
 const PassengerHomeScreen = () => {
   const { theme } = useDripsyTheme();
+  const navigation = useNavigation();
   const [expanded, setExpanded] = useState(false);
   const animation = useRef(new Animated.Value(0)).current;
   const [routes, setRoutes] = useState<any[]>([]);
@@ -338,7 +338,7 @@ const PassengerHomeScreen = () => {
     if (pickupLocation && destinationLocation) {
       // Google Maps component will handle route calculation and call handleRouteCalculated
       console.log(
-        '🏠 Pickup/destination changed, Google Maps will calculate route',
+        'Pickup/destination changed, Google Maps will calculate route',
       );
     }
   }, [pickupLocation, destinationLocation]);
@@ -398,139 +398,6 @@ const PassengerHomeScreen = () => {
       console.log(error);
     }
   };
-  // const calculateRoute = async (pickup: string, destination: string) => {
-  //   if (!pickup || !destination) {
-  //     setRouteInfo(null);
-  //     return;
-  //   }
-
-  //   try {
-  //     console.log('🎯 Fetching routes between:', pickup, destination);
-  //     const routePickupCoords = await geocodeLocation(pickup);
-  //     const routeDestinationCoords = await geocodeLocation(destination);
-  //     const response = await fetch(
-  //       `https://maps.googleapis.com/maps/api/directions/json?origin=${routePickupCoords.lat},${routePickupCoords.lng}&destination=${routeDestinationCoords.lat},${routeDestinationCoords.lng}&alternatives=true&key=${GOOGLE_MAPS_APIKEY}`,
-  //     );
-  //     const data = await response.json();
-  //     if (data.routes?.length > 0) {
-  //       // // Decode first route (index 0)
-  //       const points = polyline.decode(data.routes[0].overview_polyline.points);
-  //       const routeCoords = points.map(([lat, lng]) => ({
-  //         latitude: lat,
-  //         longitude: lng,
-  //       }));
-  //       setRoutesData(data?.routes);
-  //       setStep2Loading(false);
-  //       setStep(2);
-
-  //       // Fit map to route
-  //       if (mapRef.current && routeCoords.length > 0) {
-  //         mapRef.current.fitToCoordinates(routeCoords, {
-  //           edgePadding: { top: 100, right: 50, bottom: 100, left: 50 },
-  //           animated: true,
-  //         });
-  //       }
-
-  //       setSelectedRouteCoords(routeCoords);
-
-  //       // Decode and store all route data
-  //       const decodedRoutes: RouteInfo[] = data.routes.map((route: any) => ({
-  //         coordinates: polyline
-  //           .decode(route.overview_polyline.points)
-  //           .map(([lat, lng]: [number, number]) => ({
-  //             latitude: lat,
-  //             longitude: lng,
-  //           })),
-  //         distance: route.legs[0]?.distance?.text ?? 'N/A',
-  //         duration: route.legs[0]?.duration?.text ?? 'N/A',
-  //         summary: route.summary ?? 'Unnamed Route',
-  //       }));
-
-  //       setRoutes(decodedRoutes);
-  //     }
-  //   } catch (error) {
-  //     console.error('❌ Error fetching directions:', error);
-  //   }
-  //   // const response = await new Promise<any>((resolve, reject) => {
-  //   //   directionsService.route(
-  //   //     {
-  //   //       // 🔧 FIX: Use exact coordinates instead of text addresses for precise routing
-  //   //       origin: pickupCoords || pickup,
-  //   //       destination: destinationCoords || destination,
-  //   //       travelMode: (window as any).google.maps.TravelMode.DRIVING,
-  //   //     },
-  //   //     (result: any, status: any) => {
-  //   //       if (status === 'OK') {
-  //   //         resolve(result);
-  //   //       } else {
-  //   //         reject(new Error(`Directions request failed: ${status}`));
-  //   //       }
-  //   //     },
-  //   //   );
-  //   // });
-
-  //   // const route = response.routes[0];
-  //   const leg = selectedRoute?.legs?.[0];
-  //   const distance = leg.distance.text;
-  //   const duration = leg.duration.text;
-
-  //   // Calculate fares for different vehicle types
-  //   const distanceValue = leg.distance.value / 1000; // Convert to km
-  //   const bikeFare = Math.round(distanceValue * 8);
-  //   const autoFare = Math.round(distanceValue * 15);
-  //   const cabFare = Math.round(distanceValue * 18);
-
-  //   console.log(bikeFare)
-  //   console.log(autoFare)
-  //   console.log(cabFare)
-
-  //   console.log(`Route calculated: ${distance}, ${duration}, ₹${bikeFare}`);
-  //   // Note: This is the legacy calculation - Google Maps component will override with toll data
-  //   setRouteInfo({
-  //     distance,
-  //     duration,
-  //     fare: bikeFare,
-  //     bikeFare,
-  //     autoFare,
-  //     cabFare,
-  //     distanceKm: distanceValue,
-  //     tollCharges: 0,
-  //   });
-
-  //   // Update map to show the route
-  //   const routePickupCoords = await geocodeLocation(pickup);
-  //   const routeDestCoords = await geocodeLocation(destination);
-
-  //   // PRIORITY: Don't override passenger GPS location with route center
-  //   if (!passengerLocation?.currentLocation || passengerLocation.error) {
-  //     // Only center on route midpoint if we don't have passenger GPS
-  //     if (routePickupCoords && routeDestCoords) {
-  //       const centerLat = (routePickupCoords.lat + routeDestCoords.lat) / 2;
-  //       const centerLng = (routePickupCoords.lng + routeDestCoords.lng) / 2;
-
-  //       // Shift center slightly north to show route in upper half of screen
-  //       const adjustedCenterLat = centerLat + 0.01;
-
-  //       setLocationCoordinates({
-  //         lat: adjustedCenterLat,
-  //         lng: centerLng,
-  //         zoom: 13,
-  //       });
-  //       console.log(
-  //         '🗺️ Route calculation: Centering map on route midpoint (shifted north for upper half display)',
-  //       );
-  //     }
-  //   } else {
-  //     console.log(
-  //       '🗺️ Route calculation: Keeping map centered on passenger GPS, not route midpoint',
-  //     );
-  //   }
-  //     } catch (error) {
-  //       console.error('Route calculation error:', error);
-  //       setRouteInfo(null);
-  //     }
-  //   };
-  // };
 
   const calculateRoute = async (pickup: string, destination: string) => {
     if (!pickup || !destination) {
@@ -539,9 +406,6 @@ const PassengerHomeScreen = () => {
     }
 
     try {
-      console.log('🎯 Fetching routes between:', pickup, destination);
-
-      // 1️⃣ Get coordinates for pickup & destination
       const routePickupCoords = await geocodeLocation(pickup);
       const routeDestinationCoords = await geocodeLocation(destination);
 
@@ -553,7 +417,7 @@ const PassengerHomeScreen = () => {
         routeDestinationCoords.lat == null ||
         routeDestinationCoords.lng == null
       ) {
-        console.error('❌ Invalid geocode results:', {
+        console.error(' Invalid geocode results:', {
           routePickupCoords,
           routeDestinationCoords,
         });
@@ -561,25 +425,22 @@ const PassengerHomeScreen = () => {
         return;
       }
 
-      // 2️⃣ Fetch route data from Google Directions API
       const response = await fetch(
         `https://maps.googleapis.com/maps/api/directions/json?origin=${routePickupCoords.lat},${routePickupCoords.lng}&destination=${routeDestinationCoords.lat},${routeDestinationCoords.lng}&alternatives=true&key=${GOOGLE_MAPS_APIKEY}`,
       );
       const data = await response.json();
+      console.log('cbdjchdc dcbndjicnwcionconcnirne ', data);
 
       if (data.routes?.length > 0) {
-        // 3️⃣ Decode the first route
         const points = polyline.decode(data.routes[0].overview_polyline.points);
         const routeCoords = points.map(([lat, lng]) => ({
           latitude: lat,
           longitude: lng,
         }));
-
         setRoutesData(data.routes);
         setStep2Loading(false);
         setStep(2);
 
-        // Fit map to route
         if (mapRef.current && routeCoords.length > 0) {
           mapRef.current.fitToCoordinates(routeCoords, {
             edgePadding: { top: 100, right: 50, bottom: 100, left: 50 },
@@ -589,7 +450,6 @@ const PassengerHomeScreen = () => {
 
         setSelectedRouteCoords(routeCoords);
 
-        // Decode and store all route data
         const decodedRoutes: RouteInfo[] = data.routes.map((route: any) => ({
           coordinates: polyline
             .decode(route.overview_polyline.points)
@@ -604,21 +464,14 @@ const PassengerHomeScreen = () => {
 
         setRoutes(decodedRoutes);
 
-        // 4️⃣ Select the first route for fare calculation
         const selectedRoute = data.routes[0];
         const leg = selectedRoute.legs[0];
         const distance = leg.distance.text;
         const duration = leg.duration.text;
-
-        // 5️⃣ Fare Calculation
-        const distanceValue = leg.distance.value / 1000; // in KM
+        const distanceValue = leg.distance.value / 1000;
         const bikeFare = Math.round(distanceValue * 8);
         const autoFare = Math.round(distanceValue * 15);
         const cabFare = Math.round(distanceValue * 18);
-        console.log('nkcnecjen', distanceValue);
-        console.log(
-          `💰 Fares — Bike: ₹${bikeFare}, Auto: ₹${autoFare}, Cab: ₹${cabFare}`,
-        );
         setRouteInfo({
           distance,
           duration,
@@ -642,16 +495,16 @@ const PassengerHomeScreen = () => {
             lng: centerLng,
             zoom: 13,
           });
-          console.log('🗺️ Centering map on route midpoint (shifted north)');
+          console.log('Centering map on route midpoint (shifted north)');
         } else {
-          console.log('🗺️ Keeping map centered on passenger GPS');
+          console.log('Keeping map centered on passenger GPS');
         }
       } else {
-        console.warn('⚠️ No routes found between these points.');
+        console.warn(' No routes found between these points.');
         setRouteInfo(null);
       }
     } catch (error) {
-      console.error('❌ Route calculation error:', error);
+      console.error(' Route calculation error:', error);
       setRouteInfo(null);
     }
   };
@@ -698,7 +551,7 @@ const PassengerHomeScreen = () => {
         return null;
       }
     } catch (error) {
-      console.error('❌ Geocoding error:', error);
+      console.error(' Geocoding error:', error);
       return null;
     }
   };
@@ -714,14 +567,13 @@ const PassengerHomeScreen = () => {
     }
   };
 
-  useEffect(() => {
-    console.log('🟢 Component Mounted');
-
-    // cleanup function runs on unmount
-    return () => {
-      console.log('🔴 Component Unmounted');
-    };
-  }, []);
+  const openConfirmPage = async () => {
+    try {
+      // navigation.navigate('ConfirmRide');
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <>
@@ -1337,9 +1189,6 @@ const PassengerHomeScreen = () => {
                             </Text>
                           </View>
                         </View>
-                        {/* <Text style={{ left: 50, color: '#5431bcff' }}>
-                          Drivers
-                        </Text> */}
                       </View>
 
                       <View
@@ -1376,6 +1225,7 @@ const PassengerHomeScreen = () => {
                         }}
                       >
                         <Pressable
+                          onPress={openConfirmPage}
                           sx={{
                             flex: 1,
                             alignItems: 'center',
@@ -1539,7 +1389,15 @@ const PassengerHomeScreen = () => {
               </ScrollView>
             </View>
 
-            <View style={{ position: 'absolute', top: 60, left: 10 }}>
+            <View
+              style={{
+                position: 'absolute',
+                top: 60,
+                left: 10,
+                zIndex: 9999,
+                elevation: 10,
+              }}
+            >
               <PassengerHamburgerButton />
             </View>
           </View>

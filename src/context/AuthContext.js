@@ -1,31 +1,28 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import * as Keychain from 'react-native-keychain';
 
-const AuthContext = createContext();
-export const useAuth = () => useContext(AuthContext);
+const AuthContext = createContext(null);
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
+  return context;
+};
 
 export const AuthProvider = ({ children }) => {
-  const [phoneNumber, setPhoneNumber] = useState(null);
-  const [userType, setUserType] = useState(null);
-  const [id, setId] = useState(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [userType, setUserType] = useState(null);
 
   useEffect(() => {
     const loadUserData = async () => {
       try {
         const credentials = await Keychain.getGenericPassword();
-        console.log(credentials);
-        const storedData = JSON.parse(credentials.password);
-        console.log(storedData);
-        const storedPhone = storedData.phoneNumber;
-        console.log(storedPhone);
-        const storedUserType = storedData.userType;
-        console.log(storedUserType);
-        if (storedPhone && storedUserType) {
-          setPhoneNumber(storedPhone);
-          setUserType(storedUserType);
-          setUser(true);
+        if (credentials) {
+          const storedData = JSON.parse(credentials.password);
+          setUser(storedData);
+          console.log(storedData);
+          setUserType(storedData);
         }
       } catch (e) {
         console.error('Failed to load user data:', e);
@@ -33,15 +30,15 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
       }
     };
+
     loadUserData();
   }, []);
 
   const login = async (phoneNumber, userType, id) => {
     try {
-      setPhoneNumber(phoneNumber);
-      setUserType(userType);
-      setUser({ phoneNumber, userType, id });
-      setId(id);
+      const userData = { phoneNumber, userType, id };
+      await Keychain.setGenericPassword('user', JSON.stringify(userData));
+      setUser(userData);
     } catch (e) {
       console.error('Failed to save user data:', e);
     }
@@ -50,8 +47,6 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await Keychain.resetGenericPassword();
-      setPhoneNumber(null);
-      setUserType(null);
       setUser(null);
     } catch (e) {
       console.error('Failed to clear user data:', e);
@@ -59,9 +54,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider
-      value={{ user, phoneNumber, userType, id, loading, login, logout }}
-    >
+    <AuthContext.Provider value={{ user, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

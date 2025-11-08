@@ -433,3 +433,150 @@
 //     </SafeAreaView>
 //   );
 // }
+
+import React, { useState } from 'react';
+import { TouchableOpacity, TextInput, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text } from 'dripsy';
+import { RFValue } from 'react-native-responsive-fontsize';
+
+export default function DriverSignUpScreen({ navigation }) {
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSignUp = () => {
+    // TODO: Replace this with your signup API call
+    console.log('Driver SignUp:', { name, phone, password });
+    navigation.navigate('DriverLogIn');
+  };
+
+  return (
+    <>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="transparent"
+        translucent
+      />
+
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+        <View
+          sx={{
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingX: 20,
+          }}
+        >
+          <Text
+            sx={{
+              fontSize: RFValue(24),
+              fontWeight: 'bold',
+              color: 'driver',
+              marginBottom: 30,
+            }}
+          >
+            Driver Sign Up
+          </Text>
+
+          <TextInput
+            placeholder="Full Name"
+            value={name}
+            onChangeText={setName}
+            style={{
+              width: '90%',
+              borderWidth: 1,
+              borderColor: '#ccc',
+              borderRadius: 12,
+              paddingVertical: 12,
+              paddingHorizontal: 15,
+              fontSize: 16,
+              marginBottom: 15,
+            }}
+          />
+
+          <TextInput
+            placeholder="Phone Number"
+            value={phone}
+            onChangeText={setPhone}
+            keyboardType="phone-pad"
+            style={{
+              width: '90%',
+              borderWidth: 1,
+              borderColor: '#ccc',
+              borderRadius: 12,
+              paddingVertical: 12,
+              paddingHorizontal: 15,
+              fontSize: 16,
+              marginBottom: 15,
+            }}
+          />
+
+          <TextInput
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            style={{
+              width: '90%',
+              borderWidth: 1,
+              borderColor: '#ccc',
+              borderRadius: 12,
+              paddingVertical: 12,
+              paddingHorizontal: 15,
+              fontSize: 16,
+              marginBottom: 25,
+            }}
+          />
+
+          <TouchableOpacity
+            onPress={handleSignUp}
+            activeOpacity={0.8}
+            style={{
+              backgroundColor: '#F16406',
+              paddingVertical: 14,
+              borderRadius: 25,
+              width: '90%',
+              alignItems: 'center',
+              justifyContent: 'center',
+              shadowColor: '#000',
+              shadowOpacity: 0.2,
+              shadowRadius: 8,
+              elevation: 4,
+            }}
+          >
+            <Text
+              sx={{
+                color: 'white',
+                fontWeight: 'bold',
+                fontSize: RFValue(18),
+              }}
+            >
+              Sign Up
+            </Text>
+          </TouchableOpacity>
+
+          <View sx={{ flexDirection: 'row', marginTop: 20 }}>
+            <Text sx={{ fontSize: RFValue(15), color: '#555' }}>
+              Already have an account?{' '}
+            </Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('DriverLogIn')}
+              activeOpacity={0.6}
+            >
+              <Text
+                sx={{
+                  fontSize: RFValue(15),
+                  color: '#F16406',
+                  fontWeight: 'bold',
+                }}
+              >
+                Log In
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
+    </>
+  );
+}

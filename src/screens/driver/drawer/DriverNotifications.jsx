@@ -1,6 +1,6 @@
 import React from 'react';
-import { ScrollView, Pressable, ActivityIndicator } from 'react-native';
-import { useThemeUI, useSx, View, Text } from 'dripsy';
+import { ScrollView, ActivityIndicator } from 'react-native';
+import { useThemeUI, useSx, View, Text, Pressable } from 'dripsy';
 import LinearGradient from 'react-native-linear-gradient';
 import {
   Bell,
@@ -191,16 +191,16 @@ export default function DriverNoifications({
     <>
       <View
         style={{
-          backgroundColor: '#f66a0cff',
+          backgroundColor: '#e3e2e5ff',
           paddingTop: 50,
           paddingBottom: 20,
           paddingLeft: 10,
         }}
       >
-        <Text sx={{ fontSize: 24, fontWeight: 'bold', color: 'white' }}>
+        <Text sx={{ fontSize: 24, fontWeight: 'bold', color: 'black' }}>
           Notifications
         </Text>
-        <Text sx={{ fontSize: 16, fontWeight: 900, color: 'white' }}>
+        <Text sx={{ fontSize: 16, fontWeight: 900, color: 'black' }}>
           Stay updated with your ride alerts
         </Text>
       </View>
@@ -237,7 +237,7 @@ export default function DriverNoifications({
           disabled={notifications.length === 0}
           style={{
             flex: 1,
-            backgroundColor: '#f3832eff',
+            backgroundColor: '#a906eaff',
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',

@@ -1,8 +1,9 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RoleSelectionScreen } from '../screens/RoleSelectionScreen';
-import DriverLogInScreen from '../screens/driver/DriverLogInScreen';
 import PassengerLogInScreen from '../screens/client/PassengerLogInScreen';
 import PassengerSignUpScreen from '../screens/client/PassengerSignUpScreen';
+import DriverLogInScreen from '../screens/driver/DriverLogInScreen';
+import DriverSignUpScreen from '../screens/driver/DriverSignUpScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -31,7 +32,7 @@ export default function AuthStack() {
       />
       <Stack.Screen
         name="DriverSignUp"
-        component={DriverLogInScreen}
+        component={DriverSignUpScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

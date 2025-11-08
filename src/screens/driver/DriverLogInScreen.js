@@ -105,10 +105,7 @@ export default function DriverLogInScreen({ navigation }) {
           }),
         );
         console.log('Navigating to tabs...');
-        navigation.navigate('DriverDrawerOverlay', {
-          screen: 'HomeTabs',
-          params: { screen: 'DriverHome' },
-        });
+        // navigation.navigate('DriverTabs', { screen: 'DriverHome' });
 
         console.log('OTP Success — Showing toast');
         showToast(data?.message, 'success');
@@ -148,7 +145,7 @@ export default function DriverLogInScreen({ navigation }) {
           <View sx={{ mt: 20, alignItems: 'center', mb: 40 }}>
             <Text
               sx={{
-                fontSize: RFValue(32),
+                fontSize: RFValue(24),
                 fontWeight: 'bold',
                 color: 'purple',
               }}
@@ -156,10 +153,20 @@ export default function DriverLogInScreen({ navigation }) {
               Driver LogIn
             </Text>
           </View>
-          <Image
-            source={require('../../../src/assets/images/driverLogIn.png')}
-            resizeMode="contain"
-          />
+          <View
+            sx={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              width: 200,
+              height: 200,
+            }}
+          >
+            <Image
+              source={require('../../../src/assets/images/driverLogIn.png')}
+              resizeMode="contain"
+            />
+          </View>
 
           <View sx={{ mt: 40 }}>
             <Text

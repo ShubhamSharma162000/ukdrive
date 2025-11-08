@@ -1,352 +1,303 @@
 import React, { useState } from 'react';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useQuery } from '@tanstack/react-query';
-import { ScrollView } from 'moti';
-import { View, Text, Pressable } from 'dripsy';
-import { getDriversDetails, getDriversTripDetails } from '../DriversQuery';
+import { ScrollView } from 'react-native';
+import { View, Text, Pressable, Image } from 'dripsy';
+import { MapPin } from 'lucide-react-native';
+
+const tabs = ['Today', 'Weekly', 'Monthly'];
+const tripTabs = ['All', 'Completed', 'Pending', 'Cancelled'];
 
 export default function MyTrip() {
-  const [activeTab, setActiveTab] = useState('Today');
-  const [activeRideTab, setActiveRideTab] = useState('All');
-  const durationTabs = ['Today', 'Weekly', 'Monthly'];
-  const rideTabs = ['all', 'completed', 'pending', 'cancelled'];
-  const insets = useSafeAreaInsets();
+  const [activeTab, setActiveTab] = useState('Weekly');
+  const [activeTripTab, setActiveTripTab] = useState('All');
 
-  // --- Queries ---
-  const { data: driverData } = useQuery({
-    queryKey: ['drivers'],
-    queryFn: () => getDriversDetails('dc2480ba-86ca-403b-8cc0-81469e992c93'),
-  });
+  const trips = [
+    {
+      id: 1,
+      name: 'Shalini',
+      date: '11/5/2025',
+      time: '09:48 PM',
+      status: 'Completed',
+      fare: 29,
+      pickup: 'Google Building 40, 1600 Amphitheatre Pkwy',
+      dropoff: '1600 Amphitheatre Pkwy, Mountain View, CA',
+      distance: '1.26 km',
+      duration: '4 mins',
+      vehicle: 'Bike',
+    },
+    {
+      id: 2,
+      name: 'Shalini',
+      date: '11/5/2025',
+      time: '08:59 PM',
+      status: 'Cancelled',
+      fare: 29,
+      pickup: 'Google Building 40, 1600 Amphitheatre Pkwy',
+      dropoff: '1600 Amphitheatre Pkwy, Mountain View, CA',
+      distance: '1.26 km',
+      duration: '4 mins',
+      vehicle: 'Bike',
+    },
+  ];
 
-  const { data: allTripsData } = useQuery({
-    queryKey: ['tripData', activeTab, activeRideTab],
-    queryFn: () =>
-      getDriversTripDetails(
-        'dc2480ba-86ca-403b-8cc0-81469e992c93',
-        activeTab,
-        activeRideTab,
-      ),
-  });
-
-  const tripsArray = Array.isArray(allTripsData) ? allTripsData : [];
-  const totalRidesCompleted = tripsArray.filter(
-    r => r.status === 'completed',
-  ).length;
-  const totalEarnings = tripsArray
-    .filter(r => r.status === 'completed')
-    .reduce((sum, r) => sum + (r.driverEarnings || 0), 0);
+  const filteredTrips =
+    activeTripTab === 'All'
+      ? trips
+      : trips.filter(t => t.status === activeTripTab);
 
   return (
-    <View sx={{ flex: 1, bg: 'white', pt: 14 }}>
-      {/* Duration Tabs */}
+    <>
       <View
-        sx={{ flexDirection: 'row', justifyContent: 'space-around', px: 2 }}
+        style={{
+          backgroundColor: '#d3d2d4ff',
+          paddingTop: 20,
+          paddingLeft: 20,
+        }}
       >
-        {durationTabs.map(tab => {
-          const isActive = activeTab === tab;
-          return (
+        <Text sx={{ fontSize: 20, fontWeight: 'bold' }}>My Trips</Text>
+        <Text sx={{ color: '#666', mb: 16, fontSize: 14 }}>
+          View your trip history and earnings
+        </Text>
+      </View>
+      <ScrollView style={{ backgroundColor: '#fff', flex: 1, padding: 16 }}>
+        <View
+          sx={{
+            flexDirection: 'row',
+            backgroundColor: '#f2f2f2',
+            borderRadius: 12,
+            mb: 20,
+            overflow: 'hidden',
+          }}
+        >
+          {tabs.map(tab => (
             <Pressable
               key={tab}
               onPress={() => setActiveTab(tab)}
               sx={{
                 flex: 1,
-                alignItems: 'center',
                 py: 10,
-                mx: 4,
-                borderRadius: 12,
-                bg: isActive ? 'indigo600' : 'gray100',
-              }}
-            >
-              <Text
-                sx={{
-                  fontSize: 16,
-                  fontWeight: '500',
-                  color: isActive ? 'white' : 'gray600',
-                }}
-              >
-                {tab}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      {/* Stats Section */}
-      <View
-        sx={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          px: 16,
-          mt: 20,
-        }}
-      >
-        <View sx={{ flex: 1, bg: 'indigo100', borderRadius: 16, p: 16, mr: 8 }}>
-          <Text sx={{ color: 'gray600', fontSize: 13, fontWeight: '500' }}>
-            Total Trips
-          </Text>
-          <Text
-            sx={{ fontSize: 24, fontWeight: '700', color: 'indigo700', mt: 8 }}
-          >
-            {totalRidesCompleted}
-          </Text>
-        </View>
-
-        <View sx={{ flex: 1, bg: 'indigo100', borderRadius: 16, p: 16, ml: 8 }}>
-          <Text sx={{ color: 'gray600', fontSize: 13, fontWeight: '500' }}>
-            Total Earnings
-          </Text>
-          <Text
-            sx={{ fontSize: 24, fontWeight: '700', color: 'indigo700', mt: 8 }}
-          >
-            ₹ {totalEarnings || 0}
-          </Text>
-        </View>
-      </View>
-
-      {/* Ride Filter Tabs */}
-      <View
-        sx={{
-          flexDirection: 'row',
-          justifyContent: 'space-around',
-          px: 2,
-          mt: 20,
-        }}
-      >
-        {rideTabs.map(tab => {
-          const isActive = activeRideTab === tab;
-          return (
-            <Pressable
-              key={tab}
-              onPress={() => setActiveRideTab(tab)}
-              sx={{
-                flex: 1,
                 alignItems: 'center',
-                py: 8,
-                mx: 4,
-                borderRadius: 12,
-                bg: isActive ? 'indigo600' : 'gray100',
+                backgroundColor:
+                  activeTab === tab ? '#9108f3ff' : 'transparent',
               }}
             >
               <Text
                 sx={{
-                  fontSize: 15,
-                  color: isActive ? 'white' : 'gray600',
+                  color: activeTab === tab ? '#fff' : '#000',
+                  fontWeight: 'bold',
+                  fontSize: 14,
                 }}
               >
                 {tab}
               </Text>
             </Pressable>
-          );
-        })}
-      </View>
+          ))}
+        </View>
 
-      {/* Trip List */}
-      <ScrollView contentContainerStyle={{ paddingBottom: 80 + insets.bottom }}>
         <View
           sx={{
-            flex: 1,
-            alignItems: 'center',
-            justifyContent: 'center',
-            mt: 12,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            mb: 24,
           }}
         >
-          {tripsArray.length > 0 ? (
-            tripsArray.map((trip: any, index: number) => (
-              <View
-                key={trip.id || index}
+          <View
+            sx={{
+              width: '48%',
+              backgroundColor: '#f8e9fdff',
+              borderRadius: 16,
+              p: 16,
+              shadowColor: '#000',
+              shadowOpacity: 0.05,
+              shadowRadius: 4,
+            }}
+          >
+            <Text sx={{ color: '#555', fontSize: 14 }}>Total Trips</Text>
+            <Text sx={{ fontSize: 28, fontWeight: 'bold' }}>151</Text>
+            <Text sx={{ color: '#777', fontSize: 14 }}>Completed</Text>
+          </View>
+
+          <View
+            sx={{
+              width: '48%',
+              backgroundColor: '#f8e9fdff',
+              borderRadius: 16,
+              p: 16,
+              shadowColor: '#000',
+              shadowOpacity: 0.05,
+              shadowRadius: 4,
+            }}
+          >
+            <Text sx={{ color: '#555', fontSize: 14 }}>Total Earnings</Text>
+            <Text sx={{ fontSize: 28, fontWeight: 'bold' }}>₹4,160</Text>
+            <Text sx={{ color: '#777', fontSize: 14 }}>From Trips</Text>
+          </View>
+        </View>
+
+        <Text sx={{ fontSize: 14, fontWeight: 'bold', mb: 12 }}>
+          This Week Trips
+        </Text>
+
+        <View
+          sx={{
+            flexDirection: 'row',
+            backgroundColor: '#E7D4F3',
+            borderRadius: 12,
+            overflow: 'hidden',
+            mb: 20,
+          }}
+        >
+          {tripTabs.map(tab => (
+            <Pressable
+              key={tab}
+              onPress={() => setActiveTripTab(tab)}
+              sx={{
+                flex: 1,
+                py: 6,
+                alignItems: 'center',
+                backgroundColor: activeTripTab === tab ? '#fff' : 'transparent',
+                borderRadius: 8,
+                m: 3,
+              }}
+            >
+              <Text
                 sx={{
-                  width: '90%',
-                  bg: 'white',
-                  borderRadius: 12,
-                  p: 16,
-                  mb: 12,
-                  borderWidth: 1,
-                  borderColor: 'gray100',
-                  shadowColor: '#000',
-                  shadowOpacity: 0.05,
-                  shadowRadius: 3,
+                  color: activeTripTab === tab ? '#000' : 'rgba(0,0,0,0.6)',
+                  fontWeight: 'bold',
+                  fontSize: 14,
                 }}
               >
-                {/* Header */}
-                <View
-                  sx={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    mb: 12,
-                  }}
-                >
-                  <View sx={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <View
-                      sx={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: 20,
-                        bg: 'gray400',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        mr: 10,
-                      }}
-                    />
-                    <View>
-                      <Text sx={{ fontWeight: '600', color: 'gray800' }}>
-                        {trip.passengerName || 'Passenger'}
-                      </Text>
-                      <Text sx={{ fontSize: 12, color: 'gray500' }}>
-                        {new Date(trip.createdAt).toLocaleDateString()} •{' '}
-                        {new Date(trip.createdAt).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </Text>
-                    </View>
-                  </View>
+                {tab}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
 
-                  <View sx={{ alignItems: 'flex-end' }}>
-                    <Text
-                      sx={{
-                        fontSize: 12,
-                        fontWeight: '600',
-                        px: 8,
-                        py: 4,
-                        borderRadius: 8,
-                        mb: 4,
-                        color:
-                          trip.status === 'completed'
-                            ? 'green800'
-                            : trip.status === 'cancelled'
-                            ? 'red800'
-                            : 'blue800',
-                        bg:
-                          trip.status === 'completed'
-                            ? 'green100'
-                            : trip.status === 'cancelled'
-                            ? 'red100'
-                            : 'blue100',
-                      }}
-                    >
-                      {trip.status === 'completed'
-                        ? '✓ Completed'
-                        : trip.status === 'cancelled'
-                        ? '✗ Cancelled'
-                        : trip.status === 'awaiting_payment'
-                        ? 'Awaiting Payment'
-                        : '⏳ Pending'}
-                    </Text>
-                    <Text
-                      sx={{ fontSize: 18, fontWeight: '700', color: 'gray800' }}
-                    >
-                      ₹{trip.fare || 0} AED
-                    </Text>
-                    <Text sx={{ fontSize: 11, color: 'gray500' }}>
-                      Trip Fare
-                    </Text>
-                  </View>
+        {filteredTrips.map(trip => (
+          <View
+            key={trip.id}
+            sx={{
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: '#eee',
+              p: 26,
+              mb: 16,
+              backgroundColor: '#fff',
+              shadowColor: '#000',
+              shadowOpacity: 0.15,
+              shadowOffset: { width: 0, height: 4 },
+              shadowRadius: 8,
+            }}
+          >
+            <View sx={{ flexDirection: 'row' }}>
+              <Image
+                source={require('../../../assets/images/default-profile.jpg')}
+                sx={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 999,
+                  borderWidth: 1,
+                  borderColor: '#9901e4ff',
+                  marginBottom: 12,
+                }}
+                resizeMode="cover"
+              />
+
+              <View
+                sx={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  ml: 16,
+                }}
+              >
+                <View sx={{ flexDirection: 'column' }}>
+                  <Text sx={{ fontSize: 15, fontWeight: 'bold' }}>
+                    {trip.name}
+                  </Text>
+                  <Text sx={{ color: '#666', mb: 8, fontSize: 13 }}>
+                    {trip.date} • {trip.time}
+                  </Text>
                 </View>
-
-                {/* Pickup / Drop */}
-                <View>
+                <View sx={{ ml: 20 }}>
                   <View
                     sx={{
-                      flexDirection: 'row',
-                      alignItems: 'flex-start',
-                      mb: 6,
+                      backgroundColor:
+                        trip.status === 'Completed' ? '#E6F8EB' : '#FDECEC',
+                      px: 8,
+                      py: 4,
+                      borderRadius: 8,
                     }}
                   >
-                    <View
+                    <Text
                       sx={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: 5,
-                        bg: 'green500',
-                        mt: 5,
+                        color:
+                          trip.status === 'Completed' ? '#1F8B4C' : '#D32F2F',
+                        fontWeight: 'bold',
+                        fontSize: 10,
                       }}
-                    />
-                    <View sx={{ flex: 1, ml: 10 }}>
-                      <Text
-                        sx={{
-                          fontSize: 11,
-                          color: 'gray500',
-                          fontWeight: '500',
-                        }}
-                      >
-                        Pickup Location
-                      </Text>
-                      <Text sx={{ fontSize: 13, color: 'gray800' }}>
-                        {trip.pickupLocation || 'Unknown Location'}
-                      </Text>
-                    </View>
+                    >
+                      {trip.status}
+                    </Text>
                   </View>
-                  <View sx={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-                    <View
-                      sx={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: 5,
-                        bg: 'red500',
-                        mt: 5,
-                      }}
-                    />
-                    <View sx={{ flex: 1, ml: 10 }}>
-                      <Text
-                        sx={{
-                          fontSize: 11,
-                          color: 'gray500',
-                          fontWeight: '500',
-                        }}
-                      >
-                        Drop off Location
-                      </Text>
-                      <Text sx={{ fontSize: 13, color: 'gray800' }}>
-                        {trip.destination || 'Unknown Destination'}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-
-                {/* Trip Stats */}
-                <View
-                  sx={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    mt: 12,
-                    pt: 8,
-                    borderTopWidth: 1,
-                    borderColor: 'gray100',
-                  }}
-                >
-                  <Text sx={{ fontSize: 12, color: 'gray500' }}>
-                    Distance:{' '}
-                    <Text sx={{ fontWeight: '600', color: 'gray800' }}>
-                      {trip.distance}
-                    </Text>
+                  <Text sx={{ fontWeight: 'bold', fontSize: 14, mb: 4 }}>
+                    ₹{trip.fare} INR
                   </Text>
-                  <Text sx={{ fontSize: 12, color: 'gray500' }}>
-                    Duration:{' '}
-                    <Text sx={{ fontWeight: '600', color: 'gray800' }}>
-                      {trip.duration}
-                    </Text>
-                  </Text>
-                  <Text sx={{ fontSize: 12, color: 'gray500' }}>
-                    Vehicle:{' '}
-                    <Text sx={{ fontWeight: '600', color: 'gray800' }}>
-                      {trip.vehicleType || 'Car'}
-                    </Text>
+                  <Text sx={{ color: '#999', mb: 8, fontSize: 12 }}>
+                    Trip Fare
                   </Text>
                 </View>
               </View>
-            ))
-          ) : (
-            <View sx={{ py: 32, alignItems: 'center' }}>
-              <Text sx={{ color: 'gray400', fontSize: 18, mb: 4 }}>
-                No trips found
-              </Text>
-              <Text sx={{ color: 'gray500', fontSize: 14 }}>
-                No trip data for the selected period
+            </View>
+
+            <View sx={{ mb: 8 }}>
+              <View sx={{ flexDirection: 'row', alignItems: 'center' }}>
+                <MapPin color="#fa7319ff" size={20} />
+                <Text sx={{ ml: 6, fontWeight: 'bold', fontSize: 14 }}>
+                  Pickup Location
+                </Text>
+              </View>
+              <Text sx={{ color: '#555', ml: 22, fontSize: 12 }}>
+                {trip.pickup}
               </Text>
             </View>
-          )}
-        </View>
+
+            <View sx={{ mb: 8 }}>
+              <View sx={{ flexDirection: 'row', alignItems: 'center' }}>
+                <MapPin color="#8104f5ff" size={20} />
+                <Text sx={{ ml: 6, fontWeight: 'bold', fontSize: 14 }}>
+                  Drop off Location
+                </Text>
+              </View>
+              <Text sx={{ color: '#555', ml: 22, fontSize: 12 }}>
+                {trip.dropoff}
+              </Text>
+            </View>
+            <View
+              style={{
+                height: 1,
+                backgroundColor: '#E0E0E0',
+                width: '100%',
+                marginVertical: 10,
+              }}
+            />
+            <View sx={{ flexDirection: 'row' }}>
+              <Text sx={{ fontWeight: 'bold', fontSize: 12 }}>
+                {'  '}
+                Distance: {trip.distance}
+              </Text>{' '}
+              <Text sx={{ fontWeight: 'bold', fontSize: 12 }}>
+                {'   '}
+                Duration: {trip.duration}
+              </Text>
+              {'   '}
+              <Text sx={{ fontWeight: 'bold', fontSize: 12 }}>
+                {'   '}
+                Vehicle: {trip.vehicle}
+              </Text>
+            </View>
+          </View>
+        ))}
       </ScrollView>
-    </View>
+    </>
   );
 }

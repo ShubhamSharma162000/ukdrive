@@ -4,22 +4,33 @@ import PassengerRides from '../screens/client/dashboard/PassengerRides';
 import PassengerNoifications from '../screens/client/dashboard/PassengerNotifications';
 import PassengerProfile from '../screens/client/dashboard/PassengerProfile';
 import PassengerHomeScreen from '../screens/client/dashboard/PassngerHomeScreen';
+import { Image, View } from 'dripsy';
+import { Bell, CarFront, Home, User } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Tab = createBottomTabNavigator();
 
-export default function UserTabs() {
+export default function PassengerTabs() {
+  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
       screenOptions={{
+        lazy: true,
         headerShown: false,
-        tabBarActiveTintColor: '#fcab64ff',
+        tabBarActiveTintColor: '#f1790fff',
         tabBarInactiveTintColor: '#151514ff',
         tabBarStyle: {
-          height: 60,
-          paddingVertical: 6,
+          height: insets.bottom + 60,
+          paddingBottom: insets.bottom,
+          paddingVertical: 4,
+          backgroundColor: '#ffffff',
+          padding: 4,
+          alignContent: 'center',
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingTop: 5,
         },
         tabBarLabelStyle: { fontSize: 12 },
-        tabBarIconStyle: { marginBottom: -2 },
       }}
     >
       <Tab.Screen
@@ -27,8 +38,20 @@ export default function UserTabs() {
         component={PassengerHomeScreen}
         options={{
           tabBarLabel: 'Home',
-          tabBarIcon: ({ color, size }) => (
-            <Icon name="home" size={24} color={color} />
+
+          tabBarIcon: ({ focused }) => (
+            <View
+              style={{
+                backgroundColor: focused ? '#fdcd9fff' : 'transparent',
+                flex: 1,
+                padding: 18,
+                borderRadius: 12,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Home size={22} color={focused ? '#ea610cff' : '#060606ff'} />
+            </View>
           ),
         }}
       />
@@ -37,18 +60,38 @@ export default function UserTabs() {
         component={PassengerRides}
         options={{
           tabBarLabel: 'Rides',
-          tabBarIcon: ({ color, size }) => (
-            <Icon name="history" size={24} color={color} />
+          tabBarIcon: ({ focused }) => (
+            <View
+              style={{
+                backgroundColor: focused ? '#fdcd9fff' : 'transparent',
+                padding: 10,
+                borderRadius: 12,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <CarFront size={22} color={focused ? '#ea610cff' : '#060606ff'} />
+            </View>
           ),
         }}
       />
       <Tab.Screen
-        name="Notification"
+        name="PassengerNotification"
         component={PassengerNoifications}
         options={{
-          tabBarLabel: 'Notification',
-          tabBarIcon: ({ color, size }) => (
-            <Icon name="dollar" size={24} color={color} />
+          tabBarLabel: 'Notifications',
+          tabBarIcon: ({ focused }) => (
+            <View
+              style={{
+                backgroundColor: focused ? '#fdcd9fff' : 'transparent',
+                padding: 10,
+                borderRadius: 12,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Bell size={22} color={focused ? '#ea610cff' : '#060606ff'} />
+            </View>
           ),
         }}
       />
@@ -57,8 +100,18 @@ export default function UserTabs() {
         component={PassengerProfile}
         options={{
           tabBarLabel: 'Profile',
-          tabBarIcon: ({ color, size }) => (
-            <Icon name="dollar" size={24} color={color} />
+          tabBarIcon: ({ focused }) => (
+            <View
+              style={{
+                backgroundColor: focused ? '#fdcd9fff' : 'transparent',
+                padding: 10,
+                borderRadius: 12,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <User size={22} color={focused ? '#ea610cff' : '#060606ff'} />
+            </View>
           ),
         }}
       />

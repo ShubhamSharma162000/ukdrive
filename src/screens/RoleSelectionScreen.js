@@ -2,12 +2,12 @@ import React from 'react';
 import { StatusBar, TouchableOpacity } from 'react-native';
 import { RFValue } from 'react-native-responsive-fontsize';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, SxProp, Text } from 'dripsy';
-import { theme } from '../theme/theme';
-import { Image } from 'react-native';
+import { View, Text, Image } from 'dripsy';
 import { useDripsyTheme } from 'dripsy';
 
 export const RoleSelectionScreen = ({ navigation }) => {
+  const { theme } = useDripsyTheme();
+
   return (
     <>
       <StatusBar
@@ -17,10 +17,8 @@ export const RoleSelectionScreen = ({ navigation }) => {
       />
 
       <View sx={{ flex: 1, backgroundColor: 'background' }}>
-        <SafeAreaView
-          style={{ flex: 1, backgroundColor: 'transparent' }}
-          edges={[]}
-        >
+        <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
+          {/* Orange Circle Background */}
           <View
             sx={{
               position: 'absolute',
@@ -35,34 +33,55 @@ export const RoleSelectionScreen = ({ navigation }) => {
               zIndex: 1,
             }}
           />
+
+          {/* Logo */}
           <View sx={{ position: 'absolute', top: 35, left: 35, zIndex: 10 }}>
             <Image
               source={require('../assets/logo/UKDriveLogo.png')}
               resizeMode="contain"
+              sx={{
+                width: 80,
+                height: 80,
+              }}
             />
           </View>
+
+          {/* Center Image */}
           <View
-            sx={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+            sx={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              px: 3,
+            }}
           >
             <Image
               source={require('../assets/images/RoleSelection.png')}
               resizeMode="contain"
+              sx={{
+                width: ['70%', '55%', '40%'], // responsive width
+                height: ['30%', '35%', '40%'], // responsive height
+              }}
             />
           </View>
-          <View sx={{ alignItems: 'center', marginBottom: 20 }}>
+
+          {/* Title */}
+          <View sx={{ alignItems: 'center', mb: 3 }}>
             <Text
               sx={{
                 color: 'passengerTheme',
                 fontSize: RFValue(22),
                 fontWeight: 'bold',
-                fontFamily: 'Inter-Bold',
+                textAlign: 'center',
               }}
             >
               Register now as
             </Text>
           </View>
 
-          <View sx={{ alignItems: 'center', paddingBottom: 120, gap: 16 }}>
+          {/* Buttons */}
+          <View sx={{ alignItems: 'center', pb: 120, gap: 16 }}>
+            {/* Passenger Button */}
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => navigation.navigate('ClientLogIn')}
@@ -92,6 +111,7 @@ export const RoleSelectionScreen = ({ navigation }) => {
               </Text>
             </TouchableOpacity>
 
+            {/* Driver Button */}
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => navigation.navigate('DriverLogIn')}
@@ -122,6 +142,7 @@ export const RoleSelectionScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
+          {/* Terms and Conditions */}
           <View
             sx={{
               position: 'absolute',
@@ -139,7 +160,6 @@ export const RoleSelectionScreen = ({ navigation }) => {
                 justifyContent: 'center',
               }}
             >
-              {/* <Image source={require('../../assets/logo/termsAndConditions.png')} /> */}
               <Text
                 sx={{
                   color: 'black',

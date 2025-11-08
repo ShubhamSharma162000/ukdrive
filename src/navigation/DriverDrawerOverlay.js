@@ -1,54 +1,79 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
 import {
   createDrawerNavigator,
   DrawerContentScrollView,
-  DrawerItemList,
+  DrawerItem,
 } from '@react-navigation/drawer';
-import UserTabs from './PassengerTabs';
-import PassengerLogInScreen from '../screens/client/ClientHomeScree';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { Image } from 'dripsy';
 import {
-  Home,
   Car,
-  History,
+  Clock,
   Bell,
   Wallet,
   Shield,
+  LifeBuoy,
   HelpCircle,
-  MessageCircle,
-  Lock,
+  FileText,
   Globe,
   LogOut,
   Smile,
 } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import DriverTabs from './DriverTabs';
+import Testing from '../screens/client/Testing';
+import { useAuth } from '../context/AuthContext';
+import DriverProfile from '../screens/driver/dashboard/DriverProfile';
+import DriverWallet from '../screens/driver/dashboard/DriverWallet';
+import MyTrip from '../screens/driver/dashboard/MyTrip';
+import DriverNoifications from '../screens/driver/drawer/DriverNotifications';
+import DriverHistory from '../screens/driver/drawer/DriverHistory';
+import DriverHelpSupport from '../screens/driver/drawer/DriverHelpSupport';
+import PrivacyPolicyScreen from '../screens/client/drawer/PrivacyPolicyScreen';
 
 const Drawer = createDrawerNavigator();
 
-const CustomDrawerContent = props => {
+function CustomDrawerContent(props) {
+  const { navigation } = props;
+  const { user, logout } = useAuth() || {};
+  const { t, i18n } = useTranslation();
+  const [showLanguageOptions, setShowLanguageOptions] = useState(false);
+
+  useEffect(() => {
+    console.log('AuthContext mounted, user:', user);
+  }, [user]);
+
+  const changeLanguage = lang => {
+    i18n.changeLanguage(lang);
+    setShowLanguageOptions(false);
+  };
+
+  const drawerItemStyle = {
+    marginVertical: -8, // reduces space between items
+    paddingVertical: 0, // removes internal padding
+  };
+
   return (
-    <DrawerContentScrollView
-      {...props}
-      contentContainerStyle={{
+    <View
+      style={{
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: '#c603f7ff',
         paddingTop: 0,
       }}
     >
-      <View
+      <TouchableOpacity
+        onPress={() => navigation.navigate('DriverProfile')}
         style={{
-          backgroundColor: '#f97316',
-          paddingVertical: 30,
-          paddingHorizontal: 20,
+          paddingVertical: 20,
+          paddingHorizontal: 10,
           flexDirection: 'row',
           alignItems: 'center',
-          margin: 10,
+          marginTop: 30,
+          gap: 20,
         }}
       >
         <Image
-          source={{
-            uri: 'https://i.pravatar.cc/100',
-          }}
+          source={{ uri: 'https://i.pravatar.cc/100' }}
           style={{
             width: 60,
             height: 60,
@@ -58,128 +83,180 @@ const CustomDrawerContent = props => {
         />
         <View>
           <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>
-            John Doe
+            {t('John Doe')}
           </Text>
           <Text style={{ color: '#fff', fontSize: 14, opacity: 0.8 }}>
-            johndoe@email.com
+            {t('johndoe@email.com')}
           </Text>
         </View>
-      </View>
+      </TouchableOpacity>
 
-      {/* 🔸 Drawer Items */}
-      <View style={{ flex: 1, backgroundColor: '#fff', paddingTop: 10 }}>
-        <DrawerItemList {...props} />
-      </View>
+      <View
+        style={{
+          height: 1,
+          backgroundColor: '#ddd',
+          marginVertical: 8,
+        }}
+      />
+      <View style={{ flex: 1, gap: 2 }}>
+        <DrawerItem
+          label="Wallet"
+          icon={({ color, size }) => <Clock color="white" size={size} />}
+          onPress={() => {
+            navigation.navigate('DriverWallet');
+          }}
+          labelStyle={{ fontSize: 14, color: '#fff' }}
+          style={drawerItemStyle}
+        />
 
-      {/* 🔸 Footer Section */}
-      <View style={{ padding: 20, borderTopWidth: 1, borderTopColor: '#eee' }}>
-        <TouchableOpacity
-          onPress={() => console.log('Sign out pressed')}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}
-        >
-          <LogOut color="#f97316" size={20} />
-          <Text style={{ fontSize: 15, color: '#333', fontWeight: '600' }}>
-            Sign Out
-          </Text>
-        </TouchableOpacity>
+        <DrawerItem
+          label="My Trip"
+          icon={({ color, size }) => <Clock color="white" size={size} />}
+          onPress={() => {
+            navigation.navigate('MyTrip');
+          }}
+          labelStyle={{ fontSize: 14, color: '#fff' }}
+          style={drawerItemStyle}
+        />
+
+        <DrawerItem
+          label="History"
+          icon={({ color, size }) => <Bell color="white" size={size} />}
+          onPress={() => {
+            navigation.navigate('DriverHistory');
+          }}
+          labelStyle={{ fontSize: 14, color: '#fff' }}
+          style={drawerItemStyle}
+        />
+
+        <DrawerItem
+          label="Notifications"
+          icon={({ color, size }) => <Wallet color="white" size={size} />}
+          onPress={() => {
+            navigation.navigate('DriverNoifications');
+          }}
+          labelStyle={{ fontSize: 14, color: '#fff' }}
+          style={drawerItemStyle}
+        />
+
+        <DrawerItem
+          label="Rewards"
+          icon={({ color, size }) => <LifeBuoy color="white" size={size} />}
+          onPress={() => {
+            navigation.navigate('Testing');
+          }}
+          labelStyle={{ fontSize: 14, color: '#fff' }}
+          style={drawerItemStyle}
+        />
+
+        <DrawerItem
+          label="Settings"
+          icon={({ color, size }) => <Shield color="white" size={size} />}
+          onPress={() => {
+            navigation.navigate('DriverProfile');
+          }}
+          labelStyle={{ fontSize: 14, color: '#fff' }}
+          style={drawerItemStyle}
+        />
+
+        <DrawerItem
+          label={t('language')}
+          icon={({ color, size }) => <Globe color="white" size={size} />}
+          onPress={() => setShowLanguageOptions(!showLanguageOptions)}
+          labelStyle={{ fontSize: 14, color: '#fff' }}
+          style={drawerItemStyle}
+        />
+
+        {showLanguageOptions && (
+          <View
+            style={{
+              marginLeft: 50,
+              marginRight: 20,
+              backgroundColor: '#d99cfaff',
+              paddingLeft: 20,
+              paddingVertical: 8,
+              borderRadius: 10,
+              overflow: 'hidden',
+            }}
+          >
+            <TouchableOpacity onPress={() => changeLanguage('en')}>
+              <Text style={{ color: '#fff', fontSize: 14, marginVertical: 5 }}>
+                {t('english')}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => changeLanguage('hi')}>
+              <Text style={{ color: '#fff', fontSize: 14, marginVertical: 5 }}>
+                {t('hindi')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        <DrawerItem
+          label="Help & Support"
+          icon={({ color, size }) => <LifeBuoy color="white" size={size} />}
+          onPress={() => {
+            navigation.navigate('DriverHelpSupport');
+          }}
+          labelStyle={{ fontSize: 14, color: '#fff' }}
+          style={drawerItemStyle}
+        />
+
+        <DrawerItem
+          label="Privacy Policy"
+          icon={({ color, size }) => <LifeBuoy color="white" size={size} />}
+          onPress={() => {
+            navigation.navigate('PrivacyPolicyScreen');
+          }}
+          labelStyle={{ fontSize: 14, color: '#fff' }}
+          style={drawerItemStyle}
+        />
+
+        <DrawerItem
+          label="Sign Out"
+          icon={({ color, size }) => <LogOut color="white" size={size} />}
+          onPress={() => logout()}
+          labelStyle={{ fontSize: 14, color: '#fff' }}
+          style={drawerItemStyle}
+        />
+
+        <View
+          style={{
+            height: 1,
+            backgroundColor: '#ddd',
+            marginVertical: 10,
+          }}
+        />
+
+        <DrawerItem
+          label="Enjoy your ride with us!"
+          icon={({ color, size }) => <Smile color="white" size={size} />}
+          labelStyle={{ fontSize: 14, color: '#fff' }}
+          style={drawerItemStyle}
+        />
       </View>
-    </DrawerContentScrollView>
+    </View>
   );
-};
+}
 
-export const DriverDrawerOverlay = () => (
-  <Drawer.Navigator
-    drawerContent={props => <CustomDrawerContent {...props} />}
-    screenOptions={{
-      headerShown: false,
-      drawerType: 'slide',
-      swipeEnabled: true,
-      drawerActiveTintColor: '#f97316',
-      drawerInactiveTintColor: '#555',
-      drawerLabelStyle: { fontSize: 15, fontWeight: '600' },
-    }}
-  >
-    <Drawer.Screen
-      name="HomeTabs"
-      component={DriverTabs}
-      options={{
-        drawerLabel: 'Home',
-        drawerIcon: ({ color, size }) => <Home color={color} size={size} />,
-      }}
-    />
-    <Drawer.Screen
-      name="My Rides"
-      component={PassengerLogInScreen}
-      options={{
-        drawerIcon: ({ color, size }) => <Car color={color} size={size} />,
-      }}
-    />
-    <Drawer.Screen
-      name="History"
-      component={PassengerLogInScreen}
-      options={{
-        drawerIcon: ({ color, size }) => <History color={color} size={size} />,
-      }}
-    />
-    <Drawer.Screen
-      name="Notifications"
-      component={PassengerLogInScreen}
-      options={{
-        drawerIcon: ({ color, size }) => <Bell color={color} size={size} />,
-      }}
-    />
-    <Drawer.Screen
-      name="My Wallet"
-      component={PassengerLogInScreen}
-      options={{
-        drawerIcon: ({ color, size }) => <Wallet color={color} size={size} />,
-      }}
-    />
-    <Drawer.Screen
-      name="Safety settings"
-      component={PassengerLogInScreen}
-      options={{
-        drawerIcon: ({ color, size }) => <Shield color={color} size={size} />,
-      }}
-    />
-    <Drawer.Screen
-      name="Help & Support"
-      component={PassengerLogInScreen}
-      options={{
-        drawerIcon: ({ color, size }) => (
-          <HelpCircle color={color} size={size} />
-        ),
-      }}
-    />
-    <Drawer.Screen
-      name="FAQ"
-      component={PassengerLogInScreen}
-      options={{
-        drawerIcon: ({ color, size }) => (
-          <MessageCircle color={color} size={size} />
-        ),
-      }}
-    />
-    <Drawer.Screen
-      name="Privacy Policy"
-      component={PassengerLogInScreen}
-      options={{
-        drawerIcon: ({ color, size }) => <Lock color={color} size={size} />,
-      }}
-    />
-    <Drawer.Screen
-      name="Language"
-      component={PassengerLogInScreen}
-      options={{
-        drawerIcon: ({ color, size }) => <Globe color={color} size={size} />,
-      }}
-    />
-    <Drawer.Screen
-      name="Enjoy your ride with us !"
-      component={PassengerLogInScreen}
-      options={{
-        drawerIcon: ({ color, size }) => <Smile color={color} size={size} />,
-      }}
-    />
-  </Drawer.Navigator>
-);
+export default function DriverDrawerOverlay() {
+  return (
+    <Drawer.Navigator
+      drawerContent={props => <CustomDrawerContent {...props} />}
+      screenOptions={{ headerShown: false }}
+    >
+      <Drawer.Screen name="DriverTabs" component={DriverTabs} />
+      <Drawer.Screen name="DriverProfile" component={DriverProfile} />
+      <Drawer.Screen name="DriverWallet" component={DriverWallet} />
+      <Drawer.Screen name="MyTrip" component={MyTrip} />
+      <Drawer.Screen name="Testing" component={Testing} />
+      <Drawer.Screen name="DriverHistory" component={DriverHistory} />
+      <Drawer.Screen name="DriverNoifications" component={DriverNoifications} />
+      <Drawer.Screen name="DriverHelpSupport" component={DriverHelpSupport} />
+      <Drawer.Screen
+        name="PrivacyPolicyScreen"
+        component={PrivacyPolicyScreen}
+      />
+    </Drawer.Navigator>
+  );
+}

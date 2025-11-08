@@ -3,7 +3,7 @@ import { TouchableOpacity, View } from 'react-native';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 import { Menu } from 'lucide-react-native';
 
-export const PassengerHamburgerButton = () => {
+export const DriverHamburgerButton = () => {
   const navigation = useNavigation();
 
   const openPassengerDrawer = () => {
@@ -17,7 +17,7 @@ export const PassengerHamburgerButton = () => {
         width: 50,
         height: 50,
         borderRadius: 25,
-        backgroundColor: '#fd7e07',
+        backgroundColor: '#aa0ff8ff',
         alignItems: 'center',
         justifyContent: 'center',
         marginLeft: 10,

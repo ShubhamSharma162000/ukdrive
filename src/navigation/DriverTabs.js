@@ -1,34 +1,60 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import { Image, View } from 'dripsy';
+import { Bell, CarFront, Home, User } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DriverHome from '../screens/driver/dashboard/DriverHome';
-import { MyWallet } from '../screens/driver/dashboard/MyWallet';
 import MyTrip from '../screens/driver/dashboard/MyTrip';
+import DriverWallet, {
+  MyWallet,
+} from '../screens/driver/dashboard/DriverWallet';
 import DriverProfile from '../screens/driver/dashboard/DriverProfile';
-import { Home, History, Wallet, User } from 'lucide-react-native';
+import PassengerLogInScreen from '../screens/driver/ClientHomej';
 
 const Tab = createBottomTabNavigator();
 
 export default function DriverTabs() {
+  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
       screenOptions={{
+        lazy: true,
         headerShown: false,
-        tabBarActiveTintColor: '#801da7ff',
+        tabBarActiveTintColor: '#f1790fff',
         tabBarInactiveTintColor: '#151514ff',
         tabBarStyle: {
-          height: 60,
-          paddingVertical: 6,
+          height: insets.bottom + 60,
+          paddingBottom: insets.bottom,
+          paddingVertical: 4,
+          backgroundColor: '#ffffff',
+          padding: 4,
+          alignContent: 'center',
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingTop: 5,
         },
         tabBarLabelStyle: { fontSize: 12 },
-        tabBarIconStyle: { marginBottom: -2 },
       }}
     >
       <Tab.Screen
         name="DriverHome"
-        component={DriverHome}
+        component={PassengerLogInScreen}
         options={{
           tabBarLabel: 'Home',
-          tabBarIcon: ({ color }) => (
-            <Home size={60} color="#f66a0c" strokeWidth={2.5} />
+
+          tabBarIcon: ({ focused }) => (
+            <View
+              style={{
+                backgroundColor: focused ? '#fdcd9fff' : 'transparent',
+                flex: 1,
+                padding: 18,
+                borderRadius: 12,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Home size={22} color={focused ? '#ea610cff' : '#060606ff'} />
+            </View>
           ),
         }}
       />
@@ -36,25 +62,59 @@ export default function DriverTabs() {
         name="MyTrip"
         component={MyTrip}
         options={{
-          tabBarLabel: 'My Trips',
-          tabBarIcon: ({ color }) => <History color={color} size={24} />,
+          tabBarLabel: 'MyTrip',
+          tabBarIcon: ({ focused }) => (
+            <View
+              style={{
+                backgroundColor: focused ? '#fdcd9fff' : 'transparent',
+                padding: 10,
+                borderRadius: 12,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <CarFront size={22} color={focused ? '#ea610cff' : '#060606ff'} />
+            </View>
+          ),
         }}
       />
       <Tab.Screen
         name="MyWallet"
-        component={MyWallet}
+        component={DriverWallet}
         options={{
-          tabBarLabel: 'Wallet',
-          tabBarIcon: ({ color }) => <Wallet color={color} size={24} />,
+          tabBarLabel: 'MyWallet',
+          tabBarIcon: ({ focused }) => (
+            <View
+              style={{
+                backgroundColor: focused ? '#fdcd9fff' : 'transparent',
+                padding: 10,
+                borderRadius: 12,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Bell size={22} color={focused ? '#ea610cff' : '#060606ff'} />
+            </View>
+          ),
         }}
       />
       <Tab.Screen
-        name="Profile"
+        name="DriverProfile"
         component={DriverProfile}
         options={{
           tabBarLabel: 'Profile',
-          tabBarIcon: ({ color }) => (
-            <User size={12} color={color} strokeWidth={2.5} />
+          tabBarIcon: ({ focused }) => (
+            <View
+              style={{
+                backgroundColor: focused ? '#fdcd9fff' : 'transparent',
+                padding: 10,
+                borderRadius: 12,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <User size={22} color={focused ? '#ea610cff' : '#060606ff'} />
+            </View>
           ),
         }}
       />

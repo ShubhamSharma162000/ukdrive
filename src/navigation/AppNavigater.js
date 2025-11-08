@@ -1,35 +1,60 @@
-import { useAuth } from '../../src/context/AuthContext';
-// import PreventBackOnHome from '../utils/PreventBackOnHome.js';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
-import AuthStack from '../navigation/AuthStack.js';
-import UserTabs from './PassengerTabs.js';
-import { DriverDrawerOverlay } from '../navigation/DriverDrawerOverlay.js';
-import { UsersDrawerOverlay } from './PassengerDrawerOverlay';
-import DriverTabs from './DriverTabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useAuth } from '../../src/context/AuthContext';
+
+// Navigation components
+import AuthStack from '../navigation/AuthStack';
+import DriverDrawerOverlay from '../navigation/DriverDrawerOverlay';
+import PassengerDrawerOverlay from './PassengerDrawerOverlay';
 
 const Stack = createNativeStackNavigator();
 
+// export default function AppNavigator() {
+//   const { userType, user } = useAuth() || {};
+//   // For testing
+//   // const userType = 'driver';
+//   // const user = { name: 'Test User' };
+//   console.log(user);
+//   console.log(userType);
+
+//   return (
+//     <Stack.Navigator
+//       screenOptions={{
+//         headerShown: false,
+//       }}
+//     >
+//       {!user ? (
+//         <Stack.Screen name="Auth" component={AuthStack} />
+//       ) : (
+//         <Stack.Screen name="DriverDashboard" component={DriverDrawerOverlay} />
+//       )}
+//     </Stack.Navigator>
+//   );
+// }
+
 export default function AppNavigator() {
   const { userType, user } = useAuth() || {};
-  // For testing, you can mock:
+  // For testing
   // const userType = 'driver';
-  // const user = { name: 'test' };
+  // const user = { name: 'Test User' };
+  console.log('user ', user);
+  console.log(userType);
 
   return (
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        drawerType: 'slide',
-        swipeEnabled: true,
       }}
     >
       {!user ? (
         <Stack.Screen name="Auth" component={AuthStack} />
-      ) : userType === 'driver' ? (
-        <Stack.Screen name="DriverTabs" component={DriverTabs} />
+      ) : user?.userType === 'driver' ? (
+        <Stack.Screen name="DriverDashboard" component={DriverDrawerOverlay} />
       ) : (
-        <Stack.Screen name="UserTabs" component={UserTabs} />
+        <Stack.Screen
+          name="PassengerDashboard"
+          component={PassengerDrawerOverlay}
+        />
       )}
     </Stack.Navigator>
   );

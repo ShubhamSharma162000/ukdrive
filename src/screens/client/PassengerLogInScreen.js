@@ -202,6 +202,17 @@ export default function PassengerLogInScreen({ navigation }) {
               style={{
                 backgroundColor: theme.colors.passengerTheme,
                 paddingVertical: 12,
+                // paddingBlockEnd,
+              }}
+            ></TouchableOpacity>
+          )}
+
+          {!otpInput && (
+            <TouchableOpacity
+              onPress={sendOTP}
+              style={{
+                backgroundColor: theme.colors.passengerTheme,
+                paddingVertical: 12,
                 paddingHorizontal: 20,
                 borderRadius: 25,
                 alignItems: 'center',
