@@ -11,6 +11,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [id, setId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userType, setUserType] = useState(null);
 
@@ -20,8 +21,9 @@ export const AuthProvider = ({ children }) => {
         const credentials = await Keychain.getGenericPassword();
         if (credentials) {
           const storedData = JSON.parse(credentials.password);
+          console.log('herre is the ', storedData);
           setUser(storedData);
-          console.log(storedData);
+          setId(storedData?.id);
           setUserType(storedData);
         }
       } catch (e) {
@@ -39,6 +41,7 @@ export const AuthProvider = ({ children }) => {
       const userData = { phoneNumber, userType, id };
       await Keychain.setGenericPassword('user', JSON.stringify(userData));
       setUser(userData);
+      setId(id);
     } catch (e) {
       console.error('Failed to save user data:', e);
     }
@@ -48,13 +51,14 @@ export const AuthProvider = ({ children }) => {
     try {
       await Keychain.resetGenericPassword();
       setUser(null);
+      setId(null);
     } catch (e) {
       console.error('Failed to clear user data:', e);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ id, user, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

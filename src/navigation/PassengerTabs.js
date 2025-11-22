@@ -1,10 +1,10 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import PassengerNotifications from '../screens/client/dashboard/PassengerNotifications';
-import PassengerProfile from '../screens/client/dashboard/PassengerProfile';
 import { Home, Bell, User, CarFront } from 'lucide-react-native';
 import PassengerStack from './PassengerStack';
-import PassengerRides from '../screens/client/dashboard/PassengerRides';
+import PassengerRides from '../screens/passenger/dashboard/PassengerRides';
+import PassengerProfile from '../screens/passenger/dashboard/PassengerProfile';
+import PassengerNoifications from '../screens/passenger/dashboard/PassengerNotifications';
 
 const Tab = createBottomTabNavigator();
 
@@ -49,7 +49,7 @@ export default function PassengerTabs() {
 
       <Tab.Screen
         name="Notifications"
-        component={PassengerNotifications}
+        component={PassengerNoifications}
         options={{
           tabBarIcon: ({ color, size }) => <Bell color={color} size={size} />,
           title: 'Notifications',

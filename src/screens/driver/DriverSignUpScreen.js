@@ -193,6 +193,7 @@ export default function DriverSignUpScreen({ navigation }) {
         },
       );
       const data = response.data;
+      console.log(data);
       if (data.success) {
         login(data?.phone, data?.userType);
         navigation.navigate('HomeScreen');
@@ -565,14 +566,14 @@ export default function DriverSignUpScreen({ navigation }) {
                     : 'Upload Aadhaar Card'}
                 </Text>
               </TouchableOpacity>
-              {aadhaarFile && (
+              {/* {aadhaarFile && (
                 <Ionicons
                   name="checkmark-sharp"
                   size={30}
                   color="#3b82f6"
                   style={{ marginHorizontal: 10 }}
                 />
-              )}
+              )} */}
             </View>
 
             <View
@@ -603,14 +604,14 @@ export default function DriverSignUpScreen({ navigation }) {
                   {licenseFile ? renderFile(licenseFile) : 'Upload License'}
                 </Text>
               </TouchableOpacity>
-              {licenseFile && (
+              {/* {licenseFile && (
                 <Ionicons
                   name="checkmark-sharp"
                   size={30}
                   color="#3b82f6"
                   style={{ marginHorizontal: 10 }}
                 />
-              )}
+              )} */}
             </View>
             <View
               sx={{
@@ -640,14 +641,14 @@ export default function DriverSignUpScreen({ navigation }) {
                   {vechileRCFile ? renderFile(vechileRCFile) : 'Upload RC'}
                 </Text>
               </TouchableOpacity>
-              {vechileRCFile && (
+              {/* {vechileRCFile && (
                 <Ionicons
                   name="checkmark-sharp"
                   size={30}
                   color="#3b82f6"
                   style={{ marginHorizontal: 10 }}
                 />
-              )}
+              )} */}
             </View>
           </View>
           <TouchableOpacity

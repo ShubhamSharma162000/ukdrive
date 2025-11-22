@@ -18,7 +18,6 @@ export const RoleSelectionScreen = ({ navigation }) => {
 
       <View sx={{ flex: 1, backgroundColor: 'background' }}>
         <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
-          {/* Orange Circle Background */}
           <View
             sx={{
               position: 'absolute',
@@ -34,7 +33,6 @@ export const RoleSelectionScreen = ({ navigation }) => {
             }}
           />
 
-          {/* Logo */}
           <View sx={{ position: 'absolute', top: 35, left: 35, zIndex: 10 }}>
             <Image
               source={require('../assets/logo/UKDriveLogo.png')}
@@ -46,7 +44,6 @@ export const RoleSelectionScreen = ({ navigation }) => {
             />
           </View>
 
-          {/* Center Image */}
           <View
             sx={{
               flex: 1,
@@ -59,8 +56,8 @@ export const RoleSelectionScreen = ({ navigation }) => {
               source={require('../assets/images/RoleSelection.png')}
               resizeMode="contain"
               sx={{
-                width: ['70%', '55%', '40%'], // responsive width
-                height: ['30%', '35%', '40%'], // responsive height
+                width: ['70%', '55%', '40%'],
+                height: ['30%', '35%', '40%'],
               }}
             />
           </View>

@@ -1,69 +1,55 @@
-import React, { useState } from 'react';
-import { ScrollView, TouchableOpacity } from 'react-native';
-import { View, Text, Pressable } from 'dripsy';
+import React, { useRef, useState } from 'react';
+import {
+  Alert,
+  Animated,
+  Modal,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
+import { View, Text, Pressable, TextInput } from 'dripsy';
 import {
   ArrowDownRight,
   ArrowUpRight,
   Clock,
   Wallet,
 } from 'lucide-react-native';
-
-const StatCard = ({ icon: Icon, color, bg, label, value }: any) => (
-  <View
-    sx={{
-      flex: 1,
-      bg,
-      borderRadius: 'lg',
-      p: 16,
-      alignItems: 'center',
-      justifyContent: 'center',
-      shadowColor: '#000',
-      shadowOpacity: 0.1,
-      shadowOffset: { width: 0, height: 2 },
-      shadowRadius: 6,
-      elevation: 4,
-      m: 6,
-      minWidth: '45%',
-    }}
-  >
-    <Icon color={color} size={26} strokeWidth={2.2} />
-    <Text sx={{ fontSize: 22, fontWeight: 'bold', color, mt: 6 }}>{value}</Text>
-    <Text sx={{ color: 'gray', fontSize: 14 }}>{label}</Text>
-  </View>
-);
-
-const FilterButton = ({ label, active, onPress }: any) => (
-  <TouchableOpacity onPress={onPress}>
-    <View
-      sx={{
-        bg: active ? 'primary' : 'white',
-        borderWidth: 1,
-        borderColor: active ? 'primary' : '#d1d5db',
-        px: 12,
-        py: 8,
-        borderRadius: 'md',
-        minWidth: 100,
-        alignItems: 'center',
-      }}
-    >
-      <Text
-        sx={{
-          color: active ? 'white' : 'black',
-          fontWeight: 'bold',
-          fontSize: 14,
-        }}
-      >
-        {label}
-      </Text>
-    </View>
-  </TouchableOpacity>
-);
+import { useToast } from '../../../context/ToastContext';
+import RazorpayCheckout from '../utils/RazorpayCheckout';
+import Api from '../../../api/Api';
 
 export default function DriverWallet() {
   const [activeTab, setActiveTab] = useState('Recent Transactions');
   const [activeFilter, setActiveFilter] = useState('All Time');
-
   const filters = ['Today', 'This Month', 'All Time'];
+  const presetAmounts = [100, 500, 1000, 2000, 5000, 10000];
+  const [amount, setAmount] = useState('');
+  const [visible, setVisible] = useState(false);
+  const { showToast } = useToast();
+  const [amountError, setAmountError] = useState(false);
+  const [openRazorpay, setOpenRazorpay] = useState(false);
+
+  const onProceedPayment = async (amount: any) => {
+    try {
+      const numAmount = Number(amount);
+
+      if (!numAmount || numAmount < 100) {
+        setAmountError(true);
+        showToast(
+          'Minimum Amount Required . You must add at least ₹100 to proceed.',
+          'error',
+        );
+        return;
+      }
+      // setAmountError(false);
+      // setOpenRazorpay(true);
+      try {
+        const res = await Api.post(`/payment/driver-wallet/create-order`, {
+          params: { amount },
+        });
+        console.log(res?.data);
+      } catch (error) {}
+    } catch (error) {}
+  };
 
   const transactions = [
     {
@@ -88,28 +74,28 @@ export default function DriverWallet() {
       status: 'completed',
     },
     {
-      id: '#83a1f87c',
+      id: '#83a1f87cdd',
       desc: 'Platform fee (15%) for cash ride #6b472f61',
       date: 'Nov 05, 2025 • 01:20',
       amount: '-₹4.35',
       status: 'completed',
     },
     {
-      id: '#83a1f87c',
+      id: '#83a1f87ddc',
       desc: 'Platform fee (15%) for cash ride #6b472f61',
       date: 'Nov 05, 2025 • 01:20',
       amount: '-₹4.35',
       status: 'completed',
     },
     {
-      id: '#83a1f87c',
+      id: 'dd',
       desc: 'Platform fee (15%) for cash ride #6b472f61',
       date: 'Nov 05, 2025 • 01:20',
       amount: '-₹4.35',
       status: 'completed',
     },
     {
-      id: '#83a1f87c',
+      id: '#83a1ssf87c',
       desc: 'Platform fee (15%) for cash ride #6b472f61',
       date: 'Nov 05, 2025 • 01:20',
       amount: '-₹4.35',
@@ -169,6 +155,7 @@ export default function DriverWallet() {
 
           <View sx={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <Pressable
+              onPress={() => setVisible(true)}
               sx={{
                 flex: 1,
                 borderWidth: 1,
@@ -286,6 +273,151 @@ export default function DriverWallet() {
                 </View>
               </View>
             ))}
+
+            <Modal visible={visible} transparent animationType="fade">
+              <View
+                sx={{
+                  flex: 1,
+                  bg: 'rgba(0,0,0,0.4)',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <View
+                  sx={{
+                    width: '90%',
+                    bg: 'white',
+                    borderRadius: 16,
+                    p: 20,
+                  }}
+                >
+                  <Text
+                    sx={{
+                      fontSize: 20,
+                      fontWeight: '600',
+                      textAlign: 'center',
+                      mb: 20,
+                    }}
+                  >
+                    Add Money to Wallet
+                  </Text>
+
+                  <View
+                    sx={{
+                      flexDirection: 'row',
+                      flexWrap: 'wrap',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    {presetAmounts.map(item => (
+                      <Pressable
+                        key={item}
+                        onPress={() => setAmount(item.toString())}
+                        sx={{
+                          width: '30%',
+                          py: 12,
+                          borderWidth: 1,
+                          borderColor:
+                            amount == item.toString() ? '#7f56d9' : '#dcdcdc',
+                          borderRadius: 12,
+                          alignItems: 'center',
+                          mb: 12,
+                          bg: amount == item.toString() ? '#efe6ff' : 'white',
+                        }}
+                      >
+                        <Text
+                          sx={{
+                            fontSize: 16,
+                            color:
+                              amount == item.toString() ? '#7f56d9' : '#000',
+                            fontWeight:
+                              amount == item.toString() ? '600' : '400',
+                          }}
+                        >
+                          ₹{item}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+
+                  {/* Custom Amount */}
+                  <Text sx={{ mt: 10, mb: 6, color: '#444' }}>
+                    Custom Amount
+                  </Text>
+
+                  <TextInput
+                    value={amount}
+                    onChangeText={setAmount}
+                    keyboardType="numeric"
+                    placeholder="Enter amount"
+                    style={{
+                      borderColor: amountError ? 'red' : '#dcdcdc',
+                      borderWidth: 1,
+                      borderRadius: 10,
+                      padding: 12,
+                      fontSize: 16,
+                    }}
+                  />
+
+                  <Text sx={{ mt: 5, fontSize: 13, color: '#777' }}>
+                    Minimum: ₹100, Maximum: ₹50,000
+                  </Text>
+
+                  <View
+                    sx={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      mt: 20,
+                    }}
+                  >
+                    <Pressable
+                      onPress={() => onProceedPayment(amount)}
+                      sx={{
+                        flex: 1,
+                        bg: '#d7c6ff',
+                        py: 14,
+                        borderRadius: 12,
+                        alignItems: 'center',
+                        mr: 8,
+                      }}
+                    >
+                      <Text sx={{ fontSize: 16, fontWeight: '600' }}>
+                        Proceed to Payment
+                      </Text>
+                    </Pressable>
+
+                    <Pressable
+                      onPress={() => {
+                        setVisible(false);
+                      }}
+                      sx={{
+                        width: 90,
+                        borderWidth: 1,
+                        borderColor: '#dcdcdc',
+                        py: 14,
+                        borderRadius: 12,
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Text sx={{ color: '#777', fontSize: 16 }}>Cancel</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              </View>
+            </Modal>
+            {openRazorpay && (
+              <RazorpayCheckout
+                amount={10}
+                onSuccess={(data: any) => {
+                  console.log('Payment Success:', data);
+                  setOpenRazorpay(false);
+                }}
+                onCancel={() => {
+                  console.log('Payment Cancelled');
+                  setOpenRazorpay(false);
+                }}
+              />
+            )}
           </View>
         )}
 

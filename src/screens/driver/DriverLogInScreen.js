@@ -91,7 +91,7 @@ export default function DriverLogInScreen({ navigation }) {
         data?.tokens?.refreshToken
       ) {
         console.log('Login data:', data?.phone, data?.userType, data?.id);
-        login(data?.phone, data?.userType, data?.id || '123456789');
+        login(data?.phone, data?.userType, data?.driverId || '123456789');
 
         console.log('Saving tokens...');
         await Keychain.setGenericPassword(
@@ -101,7 +101,7 @@ export default function DriverLogInScreen({ navigation }) {
             refreshToken: data.tokens.refreshToken,
             phoneNumber: data.phone,
             userType: data.userType,
-            id: data.id,
+            id: data.driverId,
           }),
         );
         console.log('Navigating to tabs...');

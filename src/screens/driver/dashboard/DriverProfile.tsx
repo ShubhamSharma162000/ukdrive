@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, TouchableOpacity, Image } from 'react-native';
 import { View, Text, Pressable } from 'dripsy';
 import { Camera, Bell, Upload } from 'lucide-react-native';
@@ -6,10 +6,22 @@ import {
   launchImageLibrary,
   ImageLibraryOptions,
 } from 'react-native-image-picker';
+import { useQuery } from '@tanstack/react-query';
 
 export default function DriverProfile() {
   const [photo, setPhoto] = useState<string | null>(null);
 
+  // const { data: driverData } = useQuery(
+  //   ['driver', driverId],
+  //   fetchDriverData,
+  //   {
+  //     staleTime: Infinity,
+  //     cacheTime: Infinity,
+  //     refetchOnMount: false,     // don't re-fetch on mount
+  //     refetchOnWindowFocus: false, // don't re-fetch on app focus
+  //     refetchOnReconnect: false, // don't re-fetch on reconnect
+  //   }
+  // );
   const openImagePicker = async () => {
     const options: ImageLibraryOptions = {
       mediaType: 'photo',

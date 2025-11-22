@@ -1,9 +1,9 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RoleSelectionScreen } from '../screens/RoleSelectionScreen';
-import PassengerLogInScreen from '../screens/client/PassengerLogInScreen';
-import PassengerSignUpScreen from '../screens/client/PassengerSignUpScreen';
 import DriverLogInScreen from '../screens/driver/DriverLogInScreen';
 import DriverSignUpScreen from '../screens/driver/DriverSignUpScreen';
+import PassengerLogInScreen from '../screens/passenger/PassengerLogInScreen';
+import PassengerSignUpScreen from '../screens/passenger/PassengerSignUpScreen';
 
 const Stack = createNativeStackNavigator();
 

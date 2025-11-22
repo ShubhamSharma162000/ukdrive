@@ -44,3 +44,10 @@ export const getDriverTransactions = async (id: string) => {
   });
   return res.data;
 };
+
+// export const getDriverGps = async (id: string) => {
+//   const res = await Api.get('/driver/getdrivergps', {
+//     params: { id },
+//   });
+//   return res.data;
+// };

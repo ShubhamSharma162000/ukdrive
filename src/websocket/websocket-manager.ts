@@ -39,6 +39,15 @@ interface WebSocketManager {
 let driverWebSocketManager: WebSocketManager | null = null;
 let passengerWebSocketManager: WebSocketManager | null = null;
 
+//createWebSocketManager() returns an object with initialized default values every time it runs.
+// These values depend on userType.
+
+// const manager = createWebSocketManager("driver");
+
+// // Override default values
+// manager.maxReconnectAttempts = 20;
+// manager.reconnectDelay = 2000;
+// manager.currentUserId = "ABC123";
 function createWebSocketManager(
   userType: 'driver' | 'passenger',
 ): WebSocketManager {
@@ -56,6 +65,10 @@ function createWebSocketManager(
   };
 }
 
+// ✔ It creates one WebSocket manager per user type
+// ✔ Ensures driver and passenger managers never mix
+// ✔ Ensures a manager is created only once (singleton pattern)
+
 function getWebSocketManager(
   userType: 'driver' | 'passenger',
 ): WebSocketManager {
@@ -72,12 +85,15 @@ function getWebSocketManager(
   }
 }
 
+// This function prevents duplicate WebSocket connections, WS storms, and identity switching bugs —
+// all problems that apps like Rapido/Uber must solve.
+
 function connect(manager: WebSocketManager, userId: string) {
   // CRITICAL FIX: Prevent duplicate connections from same user ID
   if (manager.ws && manager.currentUserId === userId) {
     if (manager.isConnected) {
       console.log(
-        `✅ ${manager.userType} ${userId} ALREADY CONNECTED - BLOCKING duplicate connection attempt`,
+        ` ${manager.userType} ${userId} ALREADY CONNECTED - BLOCKING duplicate connection attempt`,
       );
       return;
     }
@@ -86,7 +102,7 @@ function connect(manager: WebSocketManager, userId: string) {
   // STORM PREVENTION: If switching users, clean up previous connection first
   if (manager.currentUserId && manager.currentUserId !== userId) {
     console.log(
-      `🛑 STORM PREVENTION: Cleaning up previous ${manager.userType} connection before switching from ${manager.currentUserId} to ${userId}`,
+      `STORM PREVENTION: Cleaning up previous ${manager.userType} connection before switching from ${manager.currentUserId} to ${userId}`,
     );
     disconnect(manager);
     // Add small delay to prevent rapid switching
@@ -100,23 +116,23 @@ function connect(manager: WebSocketManager, userId: string) {
 }
 
 function connectInternal(manager: WebSocketManager, userId: string) {
-  // 🚫 PHANTOM ID BLOCKER: Block non-existent user IDs permanently
+  //  PHANTOM ID BLOCKER: Block non-existent user IDs permanently
   // Note: 4f25ccfd-8393-4d41-926b-2e39edb495b6 was a test phantom ID, now removed
   const phantomIds: string[] = []; // No phantom IDs to block currently
   if (phantomIds.includes(userId)) {
     console.log(
-      `🚫 PHANTOM BLOCKED: ${manager.userType} ${userId} DOES NOT EXIST in database - permanently blocked`,
+      ` PHANTOM BLOCKED: ${manager.userType} ${userId} DOES NOT EXIST in database - permanently blocked`,
     );
     return;
   }
 
-  // 🛑 EMERGENCY STORM PREVENTION: Block driver in passenger context
+  //  EMERGENCY STORM PREVENTION: Block driver in passenger context
   if (
     manager.userType === 'passenger' &&
     userId === '759e45a4-163f-4b39-8f29-ad7fcf613ba7'
   ) {
     console.log(
-      `🚫 CONTEXT ERROR: Driver ID ${userId} trying to connect as passenger - BLOCKED`,
+      `CONTEXT ERROR: Driver ID ${userId} trying to connect as passenger - BLOCKED`,
     );
     return;
   }
@@ -127,7 +143,7 @@ function connectInternal(manager: WebSocketManager, userId: string) {
   const cooldownTime = manager.userType === 'passenger' ? 500 : 3000; // 🔥 FIX: 0.5s for passengers, 3s for drivers
   if (now - lastConnection < cooldownTime) {
     console.log(
-      `🚫 RATE LIMITED: ${manager.userType} ${userId} waiting ${
+      `RATE LIMITED: ${manager.userType} ${userId} waiting ${
         cooldownTime / 1000
       }s...`,
     );
@@ -142,22 +158,23 @@ function connectInternal(manager: WebSocketManager, userId: string) {
       manager.currentUserId === userId
     ) {
       console.log(
-        `✅ ${manager.userType} ${userId} already connected and stable`,
+        ` ${manager.userType} ${userId} already connected and stable`,
       );
       return;
     }
 
     // Clean up old connection
-    console.log(`🔧 Cleaning up previous ${manager.userType} connection`);
+    console.log(` Cleaning up previous ${manager.userType} connection`);
     manager.ws.close();
     manager.ws = null;
   }
 
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const wsUrl = `${protocol}//${window.location.host}/ws`;
+  // const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsUrl = 'wss://wordier-granville-driftingly.ngrok-free.dev/ws';
 
+  console.log('hrello i sm web socket ');
   console.log(
-    `🔌 Connecting ${manager.userType} ${userId} to WebSocket: ${wsUrl}`,
+    ` Connecting ${manager.userType} ${userId} to WebSocket: ${wsUrl}`,
   );
 
   const ws = new WebSocket(wsUrl);
@@ -166,7 +183,7 @@ function connectInternal(manager: WebSocketManager, userId: string) {
 
   ws.onopen = () => {
     console.log(
-      `✅ ${manager.userType} ${userId} WebSocket connected (Global Manager)`,
+      ` ${manager.userType} ${userId} WebSocket connected (Global Manager)`,
     );
     manager.isConnected = true;
     manager.connectionError = null;
@@ -203,7 +220,7 @@ function connectInternal(manager: WebSocketManager, userId: string) {
   ws.onmessage = event => {
     try {
       const data = JSON.parse(event.data);
-      console.log(`📨 ${manager.userType} received WebSocket message:`, data);
+      console.log(`${manager.userType} received WebSocket message:`, data);
 
       // Broadcast to all listeners based on message type
       const messageType = data.type;
@@ -219,7 +236,7 @@ function connectInternal(manager: WebSocketManager, userId: string) {
       }
     } catch (error) {
       console.error(
-        `❌ ${manager.userType} WebSocket message parse error:`,
+        ` ${manager.userType} WebSocket message parse error:`,
         error,
       );
     }
@@ -246,18 +263,18 @@ function connectInternal(manager: WebSocketManager, userId: string) {
       setTimeout(() => {
         manager.reconnectAttempts++;
         console.log(
-          `🔄 ${manager.userType} reconnection attempt ${manager.reconnectAttempts}/${manager.maxReconnectAttempts}`,
+          ` ${manager.userType} reconnection attempt ${manager.reconnectAttempts}/${manager.maxReconnectAttempts}`,
         );
         connect(manager, userId);
       }, manager.reconnectDelay);
     } else if (manager.userType === 'driver' && event.code !== 1000) {
       // For drivers, log when max attempts reached
-      console.log(`❌ ${manager.userType} max reconnection attempts reached`);
+      console.log(` ${manager.userType} max reconnection attempts reached`);
     }
   };
 
   ws.onerror = error => {
-    console.error(`❌ ${manager.userType} ${userId} WebSocket error:`, error);
+    console.error(`${manager.userType} ${userId} WebSocket error:`, error);
     manager.connectionError = 'Connection failed';
     manager.isConnected = false;
   };
@@ -266,7 +283,7 @@ function connectInternal(manager: WebSocketManager, userId: string) {
 function disconnect(manager: WebSocketManager) {
   if (manager.ws) {
     console.log(
-      `🔌 Disconnecting ${manager.userType} ${manager.currentUserId} WebSocket`,
+      ` Disconnecting ${manager.userType} ${manager.currentUserId} WebSocket`,
     );
 
     // Clear heartbeat interval
@@ -289,7 +306,7 @@ function sendMessage(manager: WebSocketManager, message: any) {
     return true;
   } else {
     console.warn(
-      `⚠️ ${manager.userType} WebSocket not connected, message not sent:`,
+      `${manager.userType} WebSocket not connected, message not sent:`,
       message,
     );
     return false;
@@ -451,6 +468,11 @@ export const DriverWebSocket = {
       currentUserId: manager.currentUserId,
     };
   },
+  onNotification: (callback: (data: any) => void) => {
+    const manager = getWebSocketManager('driver');
+    addListener(manager, 'notification', callback);
+    return () => removeListener(manager, 'notification', callback);
+  },
 };
 
 // Public API for Passenger WebSocket
@@ -543,5 +565,11 @@ export const PassengerWebSocket = {
       connectionError: manager.connectionError,
       currentUserId: manager.currentUserId,
     };
+  },
+  // Inside PassengerWebSocket
+  onNotification: (callback: (data: any) => void) => {
+    const manager = getWebSocketManager('passenger');
+    addListener(manager, 'notification', callback);
+    return () => removeListener(manager, 'notification', callback);
   },
 };

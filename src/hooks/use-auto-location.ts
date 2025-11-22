@@ -129,43 +129,27 @@ export function useAutoLocation(options: LocationHookOptions) {
 
   // CRITICAL: Force GPS restart for drivers after server restart
   useEffect(() => {
-    if (userType === 'driver' && currentUserId && autoStart) {
-      console.log(
-        '🔄 [GPS RESTART] Forcing GPS restart for driver after server restart',
-      );
-
-      // Clear any stale global state
-      globalDriverGPS.isActive = false;
-      globalDriverGPS.watchId = null;
-      globalDriverGPS.currentLocation = null;
-
-      // Force enable GPS sharing in database immediately
-      const enableGPSSharing = async () => {
-        try {
-          await apiRequest('PATCH', `/api/drivers/${currentUserId}`, {
-            isGPSSharing: true,
-            isAvailable: true,
-          });
-          console.log(
-            '✅ [GPS] GPS sharing enabled in database for driver:',
-            currentUserId,
-          );
-        } catch (error) {
-          console.error('❌ [GPS] Failed to enable GPS sharing:', error);
-        }
-      };
-
-      enableGPSSharing();
-
-      // Force start GPS after a brief delay
-      setTimeout(() => {
-        console.log(
-          '🔄 [GPS FORCE START] Starting GPS sharing for driver:',
-          currentUserId,
-        );
-        startLocationSharing();
-      }, 1000);
+    if (userType !== 'driver' || !currentUserId || !autoStart) {
+      return;
     }
+
+    // Reset global
+    globalDriverGPS.isActive = false;
+    globalDriverGPS.watchId = null;
+    globalDriverGPS.currentLocation = null;
+
+    // Enable sharing in DB
+    apiRequest('PATCH', `/api/drivers/${currentUserId}`, {
+      isGPSSharing: true,
+      isAvailable: true,
+    }).catch(console.error);
+
+    // Start GPS safely (no hooks inside)
+    const timeout = setTimeout(() => {
+      startLocationSharing(); // must NOT contain hooks
+    }, 1000);
+
+    return () => clearTimeout(timeout);
   }, [userType, currentUserId, autoStart]);
 
   // Subscribe to global GPS state changes for drivers

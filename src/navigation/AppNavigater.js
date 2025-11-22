@@ -9,34 +9,8 @@ import PassengerDrawerOverlay from './PassengerDrawerOverlay';
 
 const Stack = createNativeStackNavigator();
 
-// export default function AppNavigator() {
-//   const { userType, user } = useAuth() || {};
-//   // For testing
-//   // const userType = 'driver';
-//   // const user = { name: 'Test User' };
-//   console.log(user);
-//   console.log(userType);
-
-//   return (
-//     <Stack.Navigator
-//       screenOptions={{
-//         headerShown: false,
-//       }}
-//     >
-//       {!user ? (
-//         <Stack.Screen name="Auth" component={AuthStack} />
-//       ) : (
-//         <Stack.Screen name="DriverDashboard" component={DriverDrawerOverlay} />
-//       )}
-//     </Stack.Navigator>
-//   );
-// }
-
 export default function AppNavigator() {
   const { userType, user } = useAuth() || {};
-  // For testing
-  // const userType = 'driver';
-  // const user = { name: 'Test User' };
   console.log('user ', user);
   console.log(userType);
 

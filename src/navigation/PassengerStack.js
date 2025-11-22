@@ -1,13 +1,17 @@
 // HomeStack.js
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import PassengerHomeScreen from '../screens/client/dashboard/PassngerHomeScreen'; // check file name
-import PassengerRideHistory from '../screens/client/drawer/PassengerRideHistory';
-import PassengerWallet from '../screens/client/drawer/PassengerWallet';
-import PassengerSafetySettings from '../screens/client/drawer/PassengerSafetySettings';
-import PassengerHelpSupport from '../screens/client/drawer/PassengerHelpSupport';
-import PassengerFAQ from '../screens/client/drawer/PassengerFAQ';
-import PrivacyPolicyScreen from '../screens/client/drawer/PrivacyPolicyScreen';
+import PassengerRideHistory from '../screens/passenger/drawer/PassengerRideHistory';
+import PassengerWallet from '../screens/passenger/drawer/PassengerWallet';
+import PassengerSafetySettings from '../screens/passenger/drawer/PassengerSafetySettings';
+import PassengerHelpSupport from '../screens/passenger/drawer/PassengerHelpSupport';
+import PassengerFAQ from '../screens/passenger/drawer/PassengerFAQ';
+import PrivacyPolicyScreen from '../screens/passenger/drawer/PrivacyPolicyScreen';
+import DetailHistoryScreen from '../screens/passenger/utils/DetailHistoryScreen';
+import RateYourRide from '../screens/passenger/utils/RateYourRide';
+import RideSummaryScreen from '../screens/passenger/utils/RideSummaryScreen';
+import EditProfile from '../screens/passenger/utils/EditProfile';
+import PassengerHomeScreen from '../screens/passenger/dashboard/PassngerHomeScreen';
 
 const Stack = createStackNavigator();
 
@@ -21,6 +25,13 @@ export default function PassengerStack() {
       <Stack.Screen name="HelpSupport" component={PassengerHelpSupport} />
       <Stack.Screen name="FAQ" component={PassengerFAQ} />
       <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+      <Stack.Screen
+        name="DetailHistoryScreen"
+        component={DetailHistoryScreen}
+      />
+      <Stack.Screen name="RateYourRide" component={RateYourRide} />
+      <Stack.Screen name="RideSummaryScreen" component={RideSummaryScreen} />
+      <Stack.Screen name="EditProfile" component={EditProfile} />
     </Stack.Navigator>
   );
 }
