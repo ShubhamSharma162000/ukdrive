@@ -139,6 +139,7 @@ function connectInternal(manager: WebSocketManager, userId: string) {
 
   // Rate limit remaining valid IDs - MORE LENIENT for passengers
   const now = Date.now();
+  console.log(now);
   const lastConnection = (manager as any).lastConnectionAttempt || 0;
   const cooldownTime = manager.userType === 'passenger' ? 500 : 3000; // 🔥 FIX: 0.5s for passengers, 3s for drivers
   if (now - lastConnection < cooldownTime) {
