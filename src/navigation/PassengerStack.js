@@ -9,7 +9,7 @@ import PassengerFAQ from '../screens/passenger/drawer/PassengerFAQ';
 import PrivacyPolicyScreen from '../screens/passenger/drawer/PrivacyPolicyScreen';
 import DetailHistoryScreen from '../screens/passenger/utils/DetailHistoryScreen';
 import RateYourRide from '../screens/passenger/utils/RateYourRide';
-import RideSummaryScreen from '../screens/passenger/utils/RideSummaryScreen';
+import RideSummaryScreen from '../screens/passenger/utils/rides/RideSummaryScreen';
 import EditProfile from '../screens/passenger/utils/EditProfile';
 import PassengerHomeScreen from '../screens/passenger/dashboard/PassngerHomeScreen';
 

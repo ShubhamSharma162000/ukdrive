@@ -4,6 +4,7 @@ import {
   DriverWebSocket,
   PassengerWebSocket,
 } from '../websocket/websocket-manager';
+import Api from '../api/Api';
 
 interface LocationHookOptions {
   userId?: string;
@@ -38,32 +39,32 @@ export function useAutoLocation(options: LocationHookOptions) {
     isManualPickupActive = false,
   } = options;
   //   const { toast } = useToast();
-
+  console.log(userId);
   // Get current user ID for WebSocket connection
   const currentUserId = userType === 'driver' ? driverId : userId;
-
+  console.log('debugging ---------1', currentUserId);
   // WebSocket connections are handled by global providers (DriverWebSocketProvider/PassengerWebSocketProvider)
   // No need to force connections here - just use existing connections for GPS sharing
 
   // FIX: Prevent duplicate GPS updates to avoid flickering
   const lastGPSSendRef = useRef({ lat: 0, lng: 0, timestamp: 0 });
-
+  console.log('debugging ---------2', lastGPSSendRef);
   // IMPROVED: More reliable WebSocket GPS sending with duplicate prevention
   const sendGPSToWebSocket = (latitude: number, longitude: number) => {
     const now = Date.now();
     const lastSend = lastGPSSendRef.current;
-
+    console.log('debugging ---------3', lastSend);
     // Prevent duplicate GPS sends within 2 seconds
     const timeDiff = now - lastSend.timestamp;
     const distanceDiff = Math.sqrt(
       Math.pow(latitude - lastSend.lat, 2) +
         Math.pow(longitude - lastSend.lng, 2),
     );
-
+    console.log('debugging ---------4', distanceDiff);
     // Skip if same location and less than 2 seconds ago
     if (timeDiff < 2000 && distanceDiff < 0.0001) {
       console.log(
-        '🚫 [GPS FIX] Skipping duplicate GPS update to prevent flickering',
+        '[GPS FIX] Skipping duplicate GPS update to prevent flickering',
       );
       return;
     }
@@ -73,12 +74,14 @@ export function useAutoLocation(options: LocationHookOptions) {
 
     if (userType === 'driver' && currentUserId) {
       const success = DriverWebSocket.sendGPS(latitude, longitude);
+      console.log('debugging ---------5', success);
       if (!success) {
         console.log('📡 [WEBSOCKET] Driver GPS send failed, reconnecting...');
         DriverWebSocket.connect(currentUserId);
         // Retry sending GPS with exponential backoff
         setTimeout(() => {
           const retrySuccess = DriverWebSocket.sendGPS(latitude, longitude);
+          console.log('debugging ---------6', retrySuccess);
           if (!retrySuccess) {
             console.warn(
               '📡 [WEBSOCKET] Driver GPS retry failed, will try again on next update',
@@ -88,6 +91,7 @@ export function useAutoLocation(options: LocationHookOptions) {
       }
     } else if (userType === 'passenger' && currentUserId) {
       const success = PassengerWebSocket.sendGPS(latitude, longitude);
+      console.log('debugging ---------7', success);
       if (!success) {
         console.log(
           '📡 [WEBSOCKET] Passenger GPS send failed, reconnecting...',
@@ -96,6 +100,7 @@ export function useAutoLocation(options: LocationHookOptions) {
         // Retry sending GPS with exponential backoff
         setTimeout(() => {
           const retrySuccess = PassengerWebSocket.sendGPS(latitude, longitude);
+          console.log('debugging --------8', retrySuccess);
           if (!retrySuccess) {
             console.warn(
               '📡 [WEBSOCKET] Passenger GPS retry failed, will try again on next update',
@@ -110,10 +115,11 @@ export function useAutoLocation(options: LocationHookOptions) {
   const sendManualPickupToWebSocket = (lat: number, lng: number) => {
     if (userType === 'passenger' && currentUserId) {
       const success = PassengerWebSocket.sendGPS(lat, lng);
+      console.log('debugging --------9', success);
       if (success) {
-        console.log('🟢 Sent manual pickup to WebSocket:', lat, lng);
+        console.log('Sent manual pickup to WebSocket:', lat, lng);
       } else {
-        console.log('❌ Failed to send manual pickup to WebSocket');
+        console.log('Failed to send manual pickup to WebSocket');
       }
     }
   };
@@ -126,7 +132,7 @@ export function useAutoLocation(options: LocationHookOptions) {
     error: null,
     accuracy: null,
   });
-
+  console.log('debugging --------10', locationState);
   // CRITICAL: Force GPS restart for drivers after server restart
   useEffect(() => {
     if (userType !== 'driver' || !currentUserId || !autoStart) {
@@ -139,11 +145,13 @@ export function useAutoLocation(options: LocationHookOptions) {
     globalDriverGPS.currentLocation = null;
 
     // Enable sharing in DB
-    apiRequest('PATCH', `/api/drivers/${currentUserId}`, {
+
+    const res1 = Api.patch('/api/drivergps/updategpssharing', {
       isGPSSharing: true,
       isAvailable: true,
-    }).catch(console.error);
-
+    });
+    console.log(res1);
+    console.log('debugging --------11', res1);
     // Start GPS safely (no hooks inside)
     const timeout = setTimeout(() => {
       startLocationSharing(); // must NOT contain hooks
@@ -210,7 +218,7 @@ export function useAutoLocation(options: LocationHookOptions) {
     try {
       const id = userType === 'driver' ? driverId : userId;
       if (!id) return;
-
+      console.log('debugging --------12', id);
       // Always update display coordinates immediately for real-time UI
       updateDisplayCoordinates(lat, lng);
 
@@ -223,12 +231,14 @@ export function useAutoLocation(options: LocationHookOptions) {
               Math.pow((lng - lastUpdateRef.current.lng) * 111000, 2),
           )
         : 1000; // Distance in meters, default to 1000 if no previous location
+
+      console.log('debugging --------12', distanceFromLast);
       const timeSinceLastUpdate = Date.now() - lastUpdateRef.current.timestamp;
 
       // For drivers: Send heartbeat every 20 seconds for stable tracking (increased from 15s)
       const isDriverHeartbeat =
         userType === 'driver' && timeSinceLastUpdate >= 20000;
-
+      console.log('debugging --------13', isDriverHeartbeat);
       // FIX: Increased minimum time between updates to prevent flickering
       const minDistance = userType === 'driver' ? 50 : 100; // 50m for drivers, 100m for passengers (increased)
       const minTime = userType === 'driver' ? 15000 : 20000; // 15s for drivers (increased from 5s), 20s for passengers
@@ -263,22 +273,43 @@ export function useAutoLocation(options: LocationHookOptions) {
 
       const endpoint =
         userType === 'driver'
-          ? `/api/drivers/${id}/location`
-          : `/api/users/${id}`;
+          ? `/api/drivers/drivergpslocationupdate`
+          : `/api/passenger/passengergpsupdate`;
 
-      await apiRequest('PATCH', endpoint, {
+      const res2 = Api.patch(endpoint, {
+        id: id,
         latitude: lat,
         longitude: lng,
         isLocationSharing: true,
       });
-
+      console.log(res2);
+      // const res2 = await apiRequest('PATCH', endpoint, {
+      //   latitude: lat,
+      //   longitude: lng,
+      //   isLocationSharing: true,
+      // });
+      console.log('debugging --------14', res2);
       // For drivers, also send heartbeat to maintain connection
       if (userType === 'driver') {
         try {
-          await apiRequest('POST', `/api/drivers/${id}/heartbeat`, {
+          // const res3 = await apiRequest(
+          //   'POST',
+          //   `/api/drivers/${id}/heartbeat`,
+          //   {
+          //     latitude: lat,
+          //     longitude: lng,
+          //   },
+          // );
+
+          const res3 = Api.post(`/api/drivers/heartbeat`, {
+            id: id,
             latitude: lat,
             longitude: lng,
+            isLocationSharing: true,
           });
+          console.log(res3);
+
+          console.log('debugging --------15', res3);
           // Reduce heartbeat logging spam - only log occasionally
           if (Date.now() % 30000 < 5000) {
             // Log ~once per 30 seconds
@@ -289,7 +320,7 @@ export function useAutoLocation(options: LocationHookOptions) {
             );
           }
         } catch (heartbeatError) {
-          console.warn(`⚠️ Driver ${id} heartbeat failed:`, heartbeatError);
+          console.warn(`Driver ${id} heartbeat failed:`, heartbeatError);
         }
       }
 
@@ -325,7 +356,7 @@ export function useAutoLocation(options: LocationHookOptions) {
       });
     }
   };
-
+  console.log('debugging --------16', updateDriverGlobalState);
   // Start location sharing
   const startLocationSharing = () => {
     // Skip GPS if manual pickup is active (for passengers only)
@@ -389,7 +420,7 @@ export function useAutoLocation(options: LocationHookOptions) {
           accuracy,
           error: null,
         };
-
+        console.log('debugging --------17', newState);
         setLocationState(prev => ({ ...prev, ...newState }));
         updateDriverGlobalState(newState);
 
@@ -500,12 +531,13 @@ export function useAutoLocation(options: LocationHookOptions) {
         // If this is a driver and GPS fails, automatically set them as unavailable
         if (userType === 'driver' && driverId) {
           try {
-            await apiRequest('PATCH', `/api/drivers/${driverId}`, {
+            const res4 = Api.patch('/api/drivers/driverisavailableupdate', {
               isAvailable: false,
+              id: currentUserId,
             });
-            console.log(
-              '🔴 Driver automatically set offline due to GPS failure',
-            );
+            console.log(res4);
+            console.log('debugging --------18', res4);
+            console.log('Driver automatically set offline due to GPS failure');
 
             // 🔑 FIX: Don't delete location immediately to avoid map reload
             // Only delete location when really necessary
@@ -536,6 +568,7 @@ export function useAutoLocation(options: LocationHookOptions) {
         }
 
         const { latitude, longitude, accuracy } = position.coords;
+        console.log('debugging --------19', position.coords);
 
         // Reset retry counter on successful tracking update
         retryCountRef.current = 0;
@@ -647,10 +680,12 @@ export function useAutoLocation(options: LocationHookOptions) {
         );
 
         // First set as unavailable, but preserve location to prevent map reload
-        await apiRequest('PATCH', `/api/drivers/${driverId}`, {
+        const res4 = Api.patch('/api/drivers/driverisavailableupdate', {
           isAvailable: false,
+          id: currentUserId,
         });
-
+        console.log(res4);
+        console.log('debugging --------20', res4);
         // 🔑 FIX: Don't delete location immediately to avoid map reload
         // Only delete location when really necessary
         // await apiRequest('PATCH', `/api/drivers/${driverId}/location`, {
@@ -663,10 +698,13 @@ export function useAutoLocation(options: LocationHookOptions) {
         );
       } else if (userType === 'passenger' && userId) {
         // Clear passenger location
-        await apiRequest('PATCH', `/api/users/${userId}/location`, {
+
+        const res4 = Api.patch('/api/passenger/passengerlocationupdate', {
+          id: userId,
           latitude: null,
           longitude: null,
         });
+        console.log(res4);
         console.log(`📍 Passenger ${userId} stopped location sharing`);
       }
     } catch (error) {
@@ -772,7 +810,7 @@ export function useAutoLocation(options: LocationHookOptions) {
     const handleBeforeUnload = () => {
       if (userType === 'driver' && driverId) {
         console.log(
-          '🔴 CRITICAL: Driver closing app - setting offline immediately',
+          ' CRITICAL: Driver closing app - setting offline immediately',
         );
 
         // Set driver as unavailable immediately when app closes
@@ -785,25 +823,30 @@ export function useAutoLocation(options: LocationHookOptions) {
 
         // Use sendBeacon for reliable delivery during page unload
         const blob1 = new Blob([offlineData], { type: 'application/json' });
-        fetch(`/api/drivers/${driverId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: offlineData,
-          keepalive: true,
+        // const res5 = fetch(`/api/drivers/${driverId}`, {
+        //   method: 'PATCH',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: offlineData,
+        //   keepalive: true,
+        // });
+        const res5 = Api.patch('/api/driver/driverupdate', {
+          updates: offlineData,
+          id: currentUserId,
         });
-
+        console.log('debugging --------21', res5);
         // Also clear location data specifically
         const locationData = JSON.stringify({
           latitude: null,
           longitude: null,
         });
         const blob2 = new Blob([locationData], { type: 'application/json' });
-        fetch(`/api/drivers/${driverId}/location`, {
+        const res6 = fetch(`/api/drivers/${driverId}/location`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: locationData,
           keepalive: true,
         });
+        console.log('debugging --------22', res6);
       }
     };
 

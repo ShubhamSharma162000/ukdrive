@@ -341,6 +341,17 @@ function removeListener(
 // Public API for Driver WebSocket
 export const DriverWebSocket = {
   connect: (userId: string) => {
+    // Close passenger session first
+    const passengerManager = getWebSocketManager('passenger');
+    if (passengerManager) {
+      console.log(
+        '----------------------------here is ebug ',
+        passengerManager,
+      );
+      disconnect(passengerManager);
+    }
+
+    // Now open driver session
     const manager = getWebSocketManager('driver');
     connect(manager, userId);
   },
@@ -432,9 +443,12 @@ export const DriverWebSocket = {
 
   onRideUpdate: (callback: (data: any) => void) => {
     const manager = getWebSocketManager('driver');
+    console.log('here we sre inseide websocket ---------');
+    console.log(callback);
     addListener(manager, 'ride_status_update', callback);
     addListener(manager, 'ride_cancellation', callback);
-
+    console.log('here we sre inseide websocket ---------');
+    console.log(callback);
     return () => {
       removeListener(manager, 'ride_status_update', callback);
       removeListener(manager, 'ride_cancellation', callback);
@@ -478,6 +492,14 @@ export const DriverWebSocket = {
 // Public API for Passenger WebSocket
 export const PassengerWebSocket = {
   connect: (userId: string) => {
+    // Close driver session first
+    const driverManager = getWebSocketManager('driver');
+    if (driverManager) {
+      console.log('----------------------------here is ebug ', driverManager);
+      disconnect(driverManager);
+    }
+
+    // Now open passenger session
     const manager = getWebSocketManager('passenger');
     connect(manager, userId);
   },
@@ -540,9 +562,12 @@ export const PassengerWebSocket = {
 
   onRideUpdate: (callback: (data: any) => void) => {
     const manager = getWebSocketManager('passenger');
+    console.log('here we sre inseide websocket ---------');
+    console.log(callback);
     addListener(manager, 'ride_status_update', callback);
     addListener(manager, 'ride_cancellation', callback);
-
+    console.log('here we sre inseide websocket ---------');
+    console.log(callback);
     return () => {
       removeListener(manager, 'ride_status_update', callback);
       removeListener(manager, 'ride_cancellation', callback);

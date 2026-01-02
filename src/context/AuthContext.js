@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
         const credentials = await Keychain.getGenericPassword();
         if (credentials) {
           const storedData = JSON.parse(credentials.password);
-          console.log('herre is the ', storedData);
+          console.log('herre is the storedata ', storedData);
           setUser(storedData);
           setId(storedData?.id);
           setUserType(storedData);
@@ -56,7 +56,6 @@ export const AuthProvider = ({ children }) => {
       console.error('Failed to clear user data:', e);
     }
   };
-
   return (
     <AuthContext.Provider value={{ id, user, loading, login, logout }}>
       {children}

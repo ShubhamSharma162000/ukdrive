@@ -6,6 +6,8 @@ import DriverNoifications from '../screens/driver/drawer/DriverNotifications';
 import DriverHelpSupport from '../screens/driver/drawer/DriverHelpSupport';
 import PrivacyPolicyScreen from '../screens/driver/drawer/PrivacyPolicyScreen';
 import DriverHomeScreen from '../screens/driver/dashboard/DriverHome';
+import MyEarningsScreen from '../screens/driver/utils/MyEarningScreen';
+import DriverRideTracking from '../screens/driver/utils/ride/driver-ride-tracking';
 
 const Stack = createStackNavigator();
 
@@ -18,6 +20,8 @@ export default function DriverStack() {
       <Stack.Screen name="Rewards" component={PassengerLogInScreen} />
       <Stack.Screen name="HelpSupport" component={DriverHelpSupport} />
       <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+      <Stack.Screen name="MyEarningsScreen" component={MyEarningsScreen} />
+      <Stack.Screen name="DriverRideTracking" component={DriverRideTracking} />
     </Stack.Navigator>
   );
 }

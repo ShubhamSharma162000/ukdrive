@@ -2,48 +2,30 @@ import React, { useState } from 'react';
 import { ScrollView } from 'react-native';
 import { View, Text, Pressable, Image } from 'dripsy';
 import { MapPin } from 'lucide-react-native';
+import { useAuth } from '../../../context/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { getDriversTripDetails } from '../DriversQuery';
 
 const tabs = ['Today', 'Weekly', 'Monthly'];
 const tripTabs = ['All', 'Completed', 'Pending', 'Cancelled'];
 
 export default function MyTrip() {
-  const [activeTab, setActiveTab] = useState('Weekly');
+  const { id } = useAuth();
+  const [period, setPeriod] = useState('Weekly');
   const [activeTripTab, setActiveTripTab] = useState('All');
 
-  const trips = [
-    {
-      id: 1,
-      name: 'Shalini',
-      date: '11/5/2025',
-      time: '09:48 PM',
-      status: 'Completed',
-      fare: 29,
-      pickup: 'Google Building 40, 1600 Amphitheatre Pkwy',
-      dropoff: '1600 Amphitheatre Pkwy, Mountain View, CA',
-      distance: '1.26 km',
-      duration: '4 mins',
-      vehicle: 'Bike',
-    },
-    {
-      id: 2,
-      name: 'Shalini',
-      date: '11/5/2025',
-      time: '08:59 PM',
-      status: 'Cancelled',
-      fare: 29,
-      pickup: 'Google Building 40, 1600 Amphitheatre Pkwy',
-      dropoff: '1600 Amphitheatre Pkwy, Mountain View, CA',
-      distance: '1.26 km',
-      duration: '4 mins',
-      vehicle: 'Bike',
-    },
-  ];
-
-  const filteredTrips =
-    activeTripTab === 'All'
-      ? trips
-      : trips.filter(t => t.status === activeTripTab);
-
+  const {
+    data: tripsData,
+    isLoading,
+    error: tripsError,
+    refetch: refetchTrips,
+  } = useQuery({
+    queryKey: ['/api/drivers', id, 'trips', 'trips_data'],
+    queryFn: () => getDriversTripDetails(id, period),
+    refetchInterval: false,
+    enabled: !!id,
+    retry: false,
+  });
   return (
     <>
       <View
@@ -71,18 +53,17 @@ export default function MyTrip() {
           {tabs.map(tab => (
             <Pressable
               key={tab}
-              onPress={() => setActiveTab(tab)}
+              onPress={() => setPeriod(tab)}
               sx={{
                 flex: 1,
                 py: 10,
                 alignItems: 'center',
-                backgroundColor:
-                  activeTab === tab ? '#9108f3ff' : 'transparent',
+                backgroundColor: period === tab ? '#9108f3ff' : 'transparent',
               }}
             >
               <Text
                 sx={{
-                  color: activeTab === tab ? '#fff' : '#000',
+                  color: period === tab ? '#fff' : '#000',
                   fontWeight: 'bold',
                   fontSize: 14,
                 }}
@@ -172,7 +153,7 @@ export default function MyTrip() {
           ))}
         </View>
 
-        {filteredTrips.map(trip => (
+        {tripsData?.map((trip: any) => (
           <View
             key={trip.id}
             sx={{

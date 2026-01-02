@@ -16,10 +16,15 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PassengerWebSocketProvider } from './src/context/passenger-websocket-context';
 import * as Keychain from 'react-native-keychain';
 import { DriverWebSocketProvider } from './src/context/driver-websocket-context';
+import messaging from '@react-native-firebase/messaging';
+import Api from './src/api/Api';
+import NotificationHandler from './src/NotificationHandler';
 
 export default function App() {
   const queryClient = new QueryClient();
   const [id, setId] = useState();
+  const [userType, setUserType] = useState();
+
   useEffect(() => {
     const getId = async () => {
       const credentials = await Keychain.getGenericPassword();
@@ -27,6 +32,7 @@ export default function App() {
         const storedData = JSON.parse(credentials.password);
         console.log(storedData);
         setId(storedData?.id);
+        setUserType(storedData?.userType);
       }
     };
   });
@@ -45,6 +51,7 @@ export default function App() {
                   <PassengerWebSocketProvider>
                     <NavigationContainer>
                       <ToastProvider>
+                        <NotificationHandler />
                         <AppNavigator />
                       </ToastProvider>
                     </NavigationContainer>

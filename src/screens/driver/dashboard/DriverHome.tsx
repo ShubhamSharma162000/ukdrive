@@ -20,6 +20,7 @@ import { DriverHamburgerButton } from '../../../helper/DriverHamburgerButton';
 import bikeIcon from '../../../assets/vehicle/bike.png';
 import autoIcon from '../../../assets/vehicle/auto.png';
 import carIcon from '../../../assets/vehicle/car.png';
+import ActiveRideNotification from '../notifications/active-ride-notification';
 
 export interface Driver {
   id: string;
@@ -148,10 +149,9 @@ export default function DriverHomeScreen() {
     autoStart: true,
   });
 
-  console.log(driverLocation);
-
   const [driverData, setDriverData] = useState<Driver | null>(null);
   const [showPopup, setShowPopup] = useState(false);
+  const [activeRideId, setActiveRideId] = useState();
 
   const [region, setRegion] = useState({
     latitude: 29.75,
@@ -384,6 +384,21 @@ export default function DriverHomeScreen() {
           </View>
         </View>
       </Modal>
+      {/* {activeRideId && (
+        <DriverRideOverlay
+          rideId={activeRideId}
+          onClose={() => setActiveRideId(null)}
+          driverLocation={driverCoordinates || undefined}
+        />
+      )} */}
+      {id && (
+        <ActiveRideNotification
+          driverId={id}
+          onViewDetails={(rideId: any) => {
+            setActiveRideId(rideId);
+          }}
+        />
+      )}
     </View>
   );
 }

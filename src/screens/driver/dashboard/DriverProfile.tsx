@@ -7,21 +7,45 @@ import {
   ImageLibraryOptions,
 } from 'react-native-image-picker';
 import { useQuery } from '@tanstack/react-query';
+import EditVehicleModal from '../utils/EditVehicleModal';
+import UpdateInfoModal from '../utils/UpdateInformationModal';
+import { useNavigation } from '@react-navigation/native';
+import { getDriversDetails, getEarningDetails } from '../DriversQuery';
+import { useAuth } from '../../../context/AuthContext';
 
 export default function DriverProfile() {
+  const { id } = useAuth();
+  const navigation = useNavigation();
   const [photo, setPhoto] = useState<string | null>(null);
+  const [editVehicleModalVisible, setEditVehicleModalVisible] = useState(false);
+  const [updateInfoModalVisible, setUpdateInfoModalVisible] = useState(false);
+  const {
+    data: driverData,
+    isLoading,
+    error: driverDataError,
+    refetch: refetchDriverData,
+  } = useQuery({
+    queryKey: ['/api/drivers', id, 'driverInfo'],
+    queryFn: () => getDriversDetails(id),
+    refetchInterval: false,
+    enabled: !!id,
+    retry: false,
+  });
+  console.log(driverData);
 
-  // const { data: driverData } = useQuery(
-  //   ['driver', driverId],
-  //   fetchDriverData,
-  //   {
-  //     staleTime: Infinity,
-  //     cacheTime: Infinity,
-  //     refetchOnMount: false,     // don't re-fetch on mount
-  //     refetchOnWindowFocus: false, // don't re-fetch on app focus
-  //     refetchOnReconnect: false, // don't re-fetch on reconnect
-  //   }
-  // );
+  const {
+    data: driverEarning,
+    error: driverEarningError,
+    refetch: refetchDriverEarning,
+  } = useQuery({
+    queryKey: ['/api/drivers/earning', id, 'earning'],
+    queryFn: () => getEarningDetails(id, 'today', 'profile'),
+    refetchInterval: false,
+    enabled: !!id,
+    retry: false,
+  });
+  console.log(driverEarning);
+
   const openImagePicker = async () => {
     const options: ImageLibraryOptions = {
       mediaType: 'photo',
@@ -74,14 +98,14 @@ export default function DriverProfile() {
               justifyContent: 'center',
             }}
           >
-            <Image
+            {/* <Image
               source={
                 photo
-                  ? { uri: photo }
-                  : require('../../../assets/images/default-profile.jpg')
+                  ? { uri: photo }   //confusing there is no row for image url
+                  : driverData?.data?.
               }
               style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
-            />
+            /> */}
           </View>
 
           <Pressable
@@ -108,11 +132,14 @@ export default function DriverProfile() {
           </Pressable>
 
           <Text sx={{ fontSize: 16, fontWeight: 'bold', color: '#9305daff' }}>
-            Shubham Sharma
+            {driverData?.data?.full_name}
           </Text>
-          <Text sx={{ color: 'gray', fontSize: 14 }}>7454958596</Text>
+          <Text sx={{ color: 'gray', fontSize: 14 }}>
+            {driverData?.data?.phone}
+          </Text>
           <Text sx={{ color: 'gray', fontSize: 13, mt: 6 }}>
-            Member since Jan 2024
+            Member since{' '}
+            {new Date(driverData?.data?.created_at).toLocaleDateString('en-IN')}
           </Text>
 
           <View
@@ -123,9 +150,9 @@ export default function DriverProfile() {
               mt: 20,
             }}
           >
-            <Stat label="Rating" value="3.8" />
-            <Stat label="Rides" value="49" />
-            <Stat label="Vehicle" value="bike" />
+            <Stat label="Rating" value={driverData?.data?.rating} />
+            <Stat label="Rides" value={driverData?.data?.total_rides} />
+            <Stat label="Vehicle" value={driverData?.data?.vehicle_type} />
           </View>
         </View>
 
@@ -144,7 +171,6 @@ export default function DriverProfile() {
             borderColor: '#f2f2f2',
           }}
         >
-          {/* Header */}
           <View
             sx={{
               flexDirection: 'row',
@@ -166,12 +192,11 @@ export default function DriverProfile() {
               }}
             >
               <Text sx={{ color: '#1F8B4C', fontWeight: '600', fontSize: 12 }}>
-                Verified ✓
+                {driverData?.data?.verification_status}
               </Text>
             </View>
           </View>
 
-          {/* Row 1 */}
           <View
             sx={{
               flexDirection: 'row',
@@ -183,10 +208,9 @@ export default function DriverProfile() {
             <View sx={{ flex: 1, pr: 12 }}>
               <Text sx={{ color: 'gray', fontSize: 13, mb: 4 }}>Type</Text>
               <Text sx={{ color: '#111', fontWeight: '700', fontSize: 16 }}>
-                Bike
+                {driverData?.data?.vehicle_type}
               </Text>
             </View>
-
             <View sx={{ flex: 1, pl: 12 }}>
               <Text sx={{ color: 'gray', fontSize: 13, mb: 4 }}>Model</Text>
               <Text sx={{ color: '#111', fontWeight: '700', fontSize: 16 }}>
@@ -194,8 +218,6 @@ export default function DriverProfile() {
               </Text>
             </View>
           </View>
-
-          {/* Row 2 */}
           <View
             sx={{
               flexDirection: 'row',
@@ -208,19 +230,21 @@ export default function DriverProfile() {
                 Registration
               </Text>
               <Text sx={{ color: '#111', fontWeight: '700', fontSize: 16 }}>
-                UK123123
+                {driverData?.data?.vehicle_registration}
               </Text>
             </View>
 
             <View sx={{ flex: 1, pl: 12 }}>
               <Text sx={{ color: 'gray', fontSize: 13, mb: 4 }}>Color</Text>
               <Text sx={{ color: '#111', fontWeight: '700', fontSize: 16 }}>
+                {/* {driverData?.data?.vehicle_registration} */}
                 N/A
               </Text>
             </View>
           </View>
 
           <TouchableOpacity
+            onPress={() => setEditVehicleModalVisible(true)}
             activeOpacity={0.8}
             style={{
               backgroundColor: '#7B2CBF',
@@ -275,7 +299,7 @@ export default function DriverProfile() {
                   Full Name
                 </Text>
                 <Text sx={{ color: '#111', fontWeight: '700', fontSize: 16 }}>
-                  Shubham Sharma
+                  {driverData?.data?.full_name}
                 </Text>
               </View>
 
@@ -284,12 +308,11 @@ export default function DriverProfile() {
                   Vehicle Type
                 </Text>
                 <Text sx={{ color: '#111', fontWeight: '700', fontSize: 16 }}>
-                  Bike
+                  {driverData?.data?.vehicle_type}
                 </Text>
               </View>
             </View>
 
-            {/* Row 2 */}
             <View
               sx={{
                 flexDirection: 'row',
@@ -303,7 +326,7 @@ export default function DriverProfile() {
                   License Number
                 </Text>
                 <Text sx={{ color: '#111', fontWeight: '700', fontSize: 16 }}>
-                  UK123123123123
+                  {driverData?.data?.license_number}
                 </Text>
               </View>
 
@@ -312,13 +335,13 @@ export default function DriverProfile() {
                   Registration
                 </Text>
                 <Text sx={{ color: '#111', fontWeight: '700', fontSize: 16 }}>
-                  123123123
+                  {driverData?.data?.vehicle_registration}
                 </Text>
               </View>
             </View>
 
-            {/* Button */}
             <TouchableOpacity
+              onPress={() => setUpdateInfoModalVisible(true)}
               style={{
                 backgroundColor: '#7B2CBF',
                 borderRadius: 10,
@@ -369,7 +392,7 @@ export default function DriverProfile() {
               mb: 6,
             }}
           >
-            ₹49.30
+            ₹{driverEarning?.data?.total}
           </Text>
 
           <Text
@@ -379,10 +402,16 @@ export default function DriverProfile() {
               mb: 20,
             }}
           >
-            from 49 rides completed
+            from {driverEarning?.data?.totalTrips} rides completed
           </Text>
 
           <TouchableOpacity
+            // onPress={() =>{
+            //               navigation.navigate('HomeStack', {
+            //   screen: 'MyEarningsScreen',
+            // });
+
+            //             }}
             style={{
               backgroundColor: '#7B2CBF',
               borderRadius: 12,
@@ -424,18 +453,41 @@ export default function DriverProfile() {
             Driver Reviews
           </Text>
           <Text sx={{ fontSize: 18, mb: 4 }}>⭐️⭐️⭐️⭐️☆</Text>
-          <Text sx={{ mb: 12 }}>3.8 (15 reviews)</Text>
+          <Text sx={{ mb: 12 }}>{driverData?.data?.rating} (15 reviews)</Text>
           <View
             sx={{
               flexDirection: 'row',
               justifyContent: 'space-around',
             }}
           >
-            <ReviewStat label="Total Rides" value="49" />
-            <ReviewStat label="Rating" value="3.8" />
-            <ReviewStat label="Earnings" value="₹49.30" />
+            <ReviewStat
+              label="Total Rides"
+              value={driverData?.data?.total_rides}
+              color="#c30404ff"
+              bg="#FDECEC"
+            />
+            <ReviewStat
+              label="Rating"
+              value={driverData?.data?.rating}
+              color="#031d40ff"
+              bg="#a8b6e5ff"
+            />
+            <ReviewStat
+              label="Earnings"
+              value={driverEarning?.data?.totalIncome}
+              color="#033b13ff"
+              bg="#b7eaceff"
+            />
           </View>
         </View>
+        <EditVehicleModal
+          visible={editVehicleModalVisible}
+          onClose={() => setEditVehicleModalVisible(false)}
+        />
+        <UpdateInfoModal
+          visible={updateInfoModalVisible}
+          onClose={() => setUpdateInfoModalVisible(false)}
+        />
       </ScrollView>
     </>
   );
@@ -539,8 +591,6 @@ const ReviewStat = ({
       shadowOffset: { width: 0, height: 2 },
       shadowRadius: 8,
       elevation: 3,
-      borderWidth: 1,
-      borderColor: '#e6e6e6',
       minWidth: '30%',
       m: 6,
     }}
@@ -557,7 +607,7 @@ const ReviewStat = ({
     </Text>
     <Text
       sx={{
-        color: '#666',
+        color,
         fontSize: 12,
         fontWeight: '500',
         textTransform: 'capitalize',

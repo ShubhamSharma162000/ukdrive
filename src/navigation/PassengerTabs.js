@@ -24,9 +24,10 @@ export default function PassengerTabs() {
           alignContent: 'center',
           justifyContent: 'center',
           alignItems: 'center',
-          paddingTop: 5,
         },
         tabBarLabelStyle: { fontSize: 12 },
+        tabBarActiveBackgroundColor: '#f4d8bcff',
+        tabBarInactiveBackgroundColor: '#ffffff',
       }}
     >
       <Tab.Screen

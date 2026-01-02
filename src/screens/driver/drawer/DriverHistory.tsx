@@ -1,233 +1,152 @@
-import React, { useState } from 'react';
-import { SafeAreaView, ScrollView, StatusBar } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { Button, SafeAreaView, ScrollView, StatusBar } from 'react-native';
 import { DripsyProvider, View, Text, Image, Pressable } from 'dripsy';
 import LinearGradient from 'react-native-linear-gradient';
-
-const rides = [
-  {
-    id: 1,
-    title: 'Ride Request',
-    date: '2025-11-07 at 01:20 PM',
-    amount: '₹29',
-    status: 'Completed',
-    paymentMode: 'CASH',
-    from: 'Google Building 40, 1600 Amphitheatre Pkwy, Mountain View, CA 94043, USA',
-    to: '1603 Charleston Rd, Mountain View, CA 94043, USA',
-  },
-  {
-    id: 2,
-    title: 'Ride Request',
-    date: '2025-11-06 at 09:45 AM',
-    amount: '₹45',
-    status: 'Canceled',
-    paymentMode: 'UPI',
-    from: '1 Infinite Loop, Cupertino, CA 95014, USA',
-    to: 'San Jose Airport, CA, USA',
-  },
-  {
-    id: 3,
-    title: 'Ride Request',
-    date: '2025-11-06 at 05:30 PM',
-    amount: '₹62',
-    status: 'Cancelled',
-    paymentMode: 'CASH',
-    from: 'Palo Alto, CA, USA',
-    to: 'Menlo Park, CA, USA',
-  },
-  {
-    id: 4,
-    title: 'Ride Request',
-    date: '2025-11-05 at 10:15 AM',
-    amount: '₹38',
-    status: 'Canceled',
-    paymentMode: 'CARD',
-    from: 'Los Altos, CA, USA',
-    to: 'Mountain View, CA, USA',
-  },
-  {
-    id: 5,
-    title: 'Ride Request',
-    date: '2025-11-05 at 07:50 PM',
-    amount: '₹57',
-    status: 'Canceled',
-    paymentMode: 'CASH',
-    from: 'Sunnyvale, CA, USA',
-    to: 'Santa Clara, CA, USA',
-  },
-  {
-    id: 6,
-    title: 'Ride Request',
-    date: '2025-11-04 at 12:00 PM',
-    amount: '₹33',
-    status: 'Canceled',
-    paymentMode: 'UPI',
-    from: 'Googleplex, Mountain View, CA, USA',
-    to: 'Redwood City, CA, USA',
-  },
-  {
-    id: 7,
-    title: 'Ride Request',
-    date: '2025-11-04 at 03:20 PM',
-    amount: '₹41',
-    status: 'Cancelled',
-    paymentMode: 'CASH',
-    from: 'Stanford University, CA, USA',
-    to: 'Menlo Park, CA, USA',
-  },
-  {
-    id: 8,
-    title: 'Ride Request',
-    date: '2025-11-03 at 06:45 PM',
-    amount: '₹28',
-    status: 'Completed',
-    paymentMode: 'CARD',
-    from: 'Santa Clara, CA, USA',
-    to: 'Cupertino, CA, USA',
-  },
-  {
-    id: 9,
-    title: 'Ride',
-    date: '2025-11-03 at 11:00 AM',
-    amount: '₹50',
-    status: 'Completed',
-    paymentMode: 'CASH',
-    from: 'Palo Alto, CA, USA',
-    to: 'San Jose, CA, USA',
-  },
-  {
-    id: 10,
-    title: 'Ride Request',
-    date: '2025-11-02 at 08:10 AM',
-    amount: '₹36',
-    status: 'Completed',
-    paymentMode: 'CASH',
-    from: 'Los Gatos, CA, USA',
-    to: 'Santa Clara, CA, USA',
-  },
-];
-
-const tabs = [
-  { label: 'All', count: 150 },
-  { label: 'Rides', count: 150 },
-  { label: 'Deliveries', count: 0 },
-];
+import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '../../../context/AuthContext';
+import { getHistoryDetails } from '../DashboardQuery';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Api from '../../../api/Api';
 
 export default function DriverHistory() {
+  const { id } = useAuth();
   const [activeTab, setActiveTab] = useState('All');
 
-  const filteredRides =
-    activeTab === 'All'
-      ? rides
-      : rides.filter(ride => ride.status === activeTab);
+  const sendTestNotification = async () => {
+    const response = Api.post('/fcm/test-direct', {
+      title: 'Ride Update',
+      body: 'Your driver is arriving soon',
+      userId: '22af096c-c43e-11f0-9ae7-2944d975bd55',
+      userType: 'driver',
+      data: {
+        rideId: '0c10740a-35a4-4599-8d1e-53a1e815ab17',
+        screen: 'RideDetails',
+      },
+    });
+    console.log(response);
+  };
+
+  const {
+    data: historyData,
+    isLoading,
+    error: historyError,
+    refetch: refetchHistory,
+  } = useQuery({
+    queryKey: ['/api/drivers', id, 'history', 'driver_history'],
+    queryFn: () => getHistoryDetails(id),
+    refetchInterval: false,
+    enabled: !!id,
+    retry: false,
+  });
+
+  const rides = useMemo(() => {
+    if (Array.isArray(historyData)) return historyData;
+    if (Array.isArray(historyData?.data)) return historyData.data;
+    return [];
+  }, [historyData]);
+
+  const tabs = useMemo(() => {
+    const completedCount = rides.filter(
+      (r: any) => r.status === 'completed',
+    ).length;
+
+    const cancelledCount = rides.filter(
+      (r: any) => r.status === 'cancelled',
+    ).length;
+
+    return [
+      { label: 'All', count: rides.length },
+      { label: 'Completed', count: completedCount },
+      { label: 'Cancelled', count: cancelledCount },
+    ];
+  }, [rides]);
+
+  const {
+    todayTotalRides,
+    todayCompletedRidesCount,
+    todayEarnings,
+    filteredRides,
+  } = useMemo(() => {
+    const completedRides = rides.filter(
+      (ride: any) => ride.status === 'completed',
+    );
+
+    return {
+      todayTotalRides: rides.length,
+
+      todayCompletedRidesCount: completedRides.length,
+
+      todayEarnings: completedRides.reduce(
+        (sum: any, ride: any) => sum + Number(ride.driver_earnings || 0),
+        0,
+      ),
+
+      filteredRides:
+        activeTab === 'All'
+          ? rides
+          : rides.filter(
+              (ride: any) =>
+                ride.status.toLowerCase() === activeTab.toLowerCase(),
+            ),
+    };
+  }, [rides, activeTab]);
 
   return (
     <>
       <View
         style={{
-          backgroundColor: '#d3d2d4ff',
+          backgroundColor: '#48048dff',
           padding: 20,
         }}
       >
-        <Text sx={{ color: 'black', fontWeight: 'bold' }}>
-          Complete History
-        </Text>
-        <Text sx={{ mt: 2, fontSize: 13 }}>
+        <Text sx={{ color: '#fff', fontWeight: 'bold' }}>Complete History</Text>
+        <Text sx={{ mt: 2, fontSize: 13, color: '#fff' }}>
           Statistics and history of all your trips
         </Text>
       </View>
+
+      <Pressable
+        onPress={sendTestNotification}
+        style={{
+          padding: 12,
+          backgroundColor: '#4CAF50',
+          borderRadius: 8,
+          alignItems: 'center',
+          marginBottom: 16,
+        }}
+      >
+        <Text style={{ color: '#fff', fontWeight: 'bold' }}>
+          Send Test Notification
+        </Text>
+      </Pressable>
+
       <ScrollView contentContainerStyle={{ padding: 16 }}>
-        <View
-          sx={{
-            backgroundColor: 'card',
-            borderRadius: 12,
-            padding: 14,
-            mb: 12,
-            borderWidth: 2,
-            borderColor: '#ad0cf19f',
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            borderLeftWidth: 6,
-            shadowColor: '#000',
-            shadowOpacity: 0.08,
-            shadowRadius: 8,
-            shadowOffset: { width: 0, height: 3 },
-            overflow: 'hidden',
-          }}
-        >
-          <View>
-            <Text sx={{ fontSize: 14, fontWeight: '700' }}>Total Trips</Text>
-            <Text sx={{ mt: 4, color: 'mutedText', fontSize: 12 }}>
-              All requests
-            </Text>
-          </View>
+        <StatCard
+          title="Total Trips"
+          subtitle="All requests"
+          value={todayTotalRides}
+          color="#fb1f0bff"
+          backgroundColor="#f7ceceff"
+          icon="car-multiple"
+        />
 
-          <Text sx={{ fontSize: 30, fontWeight: '800', color: '#ad0cf19f' }}>
-            150
-          </Text>
-        </View>
-        <View
-          sx={{
-            backgroundColor: 'card',
-            borderRadius: 12,
-            padding: 14,
-            mb: 12,
-            borderWidth: 2,
-            borderColor: '#0d8f079f',
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            borderLeftWidth: 6,
-            shadowColor: '#000',
-            shadowOpacity: 0.08,
-            shadowRadius: 8,
-            shadowOffset: { width: 0, height: 3 },
+        <StatCard
+          title="Completed Trips"
+          subtitle="Successfully finished"
+          value={todayCompletedRidesCount}
+          color="#065b03ff"
+          backgroundColor="#d2f6d8ff"
+          icon="check-circle"
+        />
 
-            overflow: 'hidden',
-          }}
-        >
-          <View>
-            <Text sx={{ fontSize: 14, fontWeight: '700' }}>Completed</Text>
-            <Text sx={{ mt: 4, color: 'mutedText', fontSize: 12 }}>
-              Successfully finished
-            </Text>
-          </View>
-
-          <Text sx={{ fontSize: 30, fontWeight: '800', color: '#0d8f079f' }}>
-            31
-          </Text>
-        </View>
-        <View
-          sx={{
-            backgroundColor: 'card',
-            borderRadius: 12,
-            padding: 14,
-            mb: 12,
-            borderWidth: 2,
-            borderColor: '#0f4dca9f',
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            borderLeftWidth: 6,
-            shadowColor: '#000',
-            shadowOpacity: 0.08,
-            shadowRadius: 8,
-            shadowOffset: { width: 0, height: 3 },
-
-            overflow: 'hidden',
-          }}
-        >
-          <View>
-            <Text sx={{ fontSize: 14, fontWeight: '700' }}>Total Earnings</Text>
-            <Text sx={{ mt: 4, color: 'mutedText', fontSize: 12 }}>
-              From completed trips
-            </Text>
-          </View>
-
-          <Text sx={{ fontSize: 30, fontWeight: '800', color: '#0f4dca9f' }}>
-            ₹3939
-          </Text>
-        </View>
+        <StatCard
+          title="Total Earnings"
+          subtitle="From completed trips"
+          value={`₹ ${todayEarnings}`}
+          color="#0f4dca"
+          backgroundColor="#d0cff6ff"
+          icon="wallet"
+        />
 
         <View
           sx={{
@@ -241,7 +160,6 @@ export default function DriverHistory() {
             mb: 24,
           }}
         >
-          {/* ---- Tabs ---- */}
           <View
             sx={{
               flexDirection: 'row',
@@ -360,91 +278,218 @@ export default function DriverHistory() {
               );
             })}
           </View>
-
-          {filteredRides.map(ride => (
-            <View
-              key={ride.id}
-              sx={{
-                backgroundColor: '#fff',
-                borderRadius: 12,
-                borderWidth: 1,
-                borderColor: '#e1e4e8',
-                mt: 16,
-                p: 14,
-                shadowColor: '#000',
-                shadowOpacity: 0.05,
-                shadowRadius: 6,
-                shadowOffset: { width: 0, height: 2 },
-                elevation: 2,
-                width: '100%',
-                alignSelf: 'center',
-              }}
-            >
-              <View
-                sx={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <View>
-                  <Text sx={{ fontSize: 16, fontWeight: '700' }}>
-                    Ride Request
-                  </Text>
-                  <Text sx={{ color: '#555', mt: 2, fontSize: 12 }}>
-                    {ride.date}
-                  </Text>
-                </View>
-                <View sx={{ alignItems: 'flex-end' }}>
-                  <Text
-                    sx={{
-                      fontSize: 18,
-                      fontWeight: '800',
-                      color:
-                        ride.status === 'Completed' ? '#0d8f07' : '#d11a1a',
-                    }}
-                  >
-                    {ride.amount}
-                  </Text>
-                  <View
-                    sx={{
-                      backgroundColor:
-                        ride.status === 'Completed' ? '#d7f8e4' : '#fde2e2',
-                      borderRadius: 16,
-                      px: 10,
-                      py: 2,
-                      mt: 4,
-                    }}
-                  >
-                    <Text
-                      sx={{
-                        color:
-                          ride.status === 'Completed' ? '#0d8f07' : '#d11a1a',
-                        fontWeight: '700',
-                        fontSize: 12,
-                      }}
-                    >
-                      {ride.status}
-                    </Text>
-                  </View>
-                  <Text sx={{ fontSize: 11, color: '#777', mt: 2 }}>98</Text>
-                </View>
-              </View>
-
-              <View sx={{ mt: 10 }}>
-                <Text sx={{ fontSize: 13, color: '#111' }}>
-                  <Text sx={{ fontWeight: '700' }}>from: </Text>
-                  {ride.from}
-                </Text>
-                <Text sx={{ fontSize: 13, color: '#111', mt: 4 }}>
-                  <Text sx={{ fontWeight: '700' }}>to: </Text>
-                  {ride.to}
-                </Text>
-              </View>
-            </View>
-          ))}
         </View>
+        {filteredRides.map((ride: any) => (
+          <HistoryCard key={ride.id} ride={ride} />
+        ))}
       </ScrollView>
     </>
   );
 }
+
+const StatCard = ({
+  title,
+  subtitle,
+  value,
+  color,
+  backgroundColor,
+  icon,
+}: {
+  title: string;
+  subtitle: string;
+  value: string | number;
+  color: string;
+  backgroundColor: string;
+  icon: string;
+}) => {
+  return (
+    <View
+      sx={{
+        backgroundColor: backgroundColor,
+        borderRadius: 16,
+        padding: 16,
+        mb: 14,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderLeftWidth: 6,
+        borderLeftColor: color,
+        shadowColor: '#000',
+        shadowOpacity: 0.08,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 4 },
+      }}
+    >
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View
+          style={{
+            backgroundColor: `${color}22`,
+            padding: 10,
+            borderRadius: 12,
+            marginRight: 12,
+          }}
+        >
+          <MaterialCommunityIcons name={icon} size={24} color={color} />
+        </View>
+
+        <View>
+          <Text sx={{ fontSize: 14, fontWeight: '700' }}>{title}</Text>
+          <Text sx={{ mt: 2, color: 'mutedText', fontSize: 12 }}>
+            {subtitle}
+          </Text>
+        </View>
+      </View>
+
+      <Text
+        sx={{
+          fontSize: 30,
+          fontWeight: '800',
+          color,
+        }}
+      >
+        {value}
+      </Text>
+    </View>
+  );
+};
+
+const HistoryCard = ({ ride }: { ride: any }) => {
+  const isCompleted = ride.status === 'completed';
+
+  return (
+    <Pressable
+      onPress={() => console.log('Ride clicked:', ride.id)}
+      style={({ pressed }) => [
+        {
+          opacity: pressed ? 0.95 : 1,
+          transform: [{ scale: pressed ? 0.98 : 1 }],
+        },
+      ]}
+    >
+      <View
+        sx={{
+          backgroundColor: '#fff',
+          borderRadius: 16,
+          borderWidth: 1,
+          borderColor: '#e5e7eb',
+          mt: 16,
+          p: 16,
+          shadowColor: '#000',
+          shadowOpacity: 0.06,
+          shadowRadius: 8,
+          shadowOffset: { width: 0, height: 3 },
+        }}
+      >
+        <View
+          sx={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <View>
+            <Text sx={{ fontSize: 14, fontWeight: '700' }}>
+              Ride #{ride.id.slice(0, 6)}
+            </Text>
+            <Text sx={{ fontSize: 11, color: '#6b7280', mt: 2 }}>
+              {new Date(ride.created_at).toLocaleString()}
+            </Text>
+          </View>
+
+          <View sx={{ alignItems: 'flex-end' }}>
+            <Text
+              sx={{
+                fontSize: 18,
+                fontWeight: '800',
+                color: isCompleted ? '#16a34a' : '#dc2626',
+              }}
+            >
+              ₹ {ride.driver_earnings}
+            </Text>
+
+            <View
+              sx={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: isCompleted ? '#dcfce7' : '#fee2e2',
+                px: 10,
+                py: 3,
+                borderRadius: 20,
+                mt: 4,
+              }}
+            >
+              <MaterialCommunityIcons
+                name={isCompleted ? 'check-circle' : 'close-circle'}
+                size={14}
+                color={isCompleted ? '#16a34a' : '#dc2626'}
+              />
+              <Text
+                sx={{
+                  ml: 6,
+                  fontSize: 12,
+                  fontWeight: '700',
+                  color: isCompleted ? '#16a34a' : '#dc2626',
+                  textTransform: 'capitalize',
+                }}
+              >
+                {ride.status}
+              </Text>
+            </View>
+          </View>
+        </View>
+        <View sx={{ mt: 14 }}>
+          <View sx={{ flexDirection: 'row', mb: 8 }}>
+            <MaterialCommunityIcons
+              name="map-marker-outline"
+              size={18}
+              color="#2563eb"
+            />
+            <Text sx={{ ml: 6, fontSize: 13, color: '#111827', flex: 1 }}>
+              {ride.pickup_location}
+            </Text>
+          </View>
+
+          <View sx={{ flexDirection: 'row' }}>
+            <MaterialCommunityIcons
+              name="map-marker-check"
+              size={18}
+              color="#16a34a"
+            />
+            <Text sx={{ ml: 6, fontSize: 13, color: '#111827', flex: 1 }}>
+              {ride.destination}
+            </Text>
+          </View>
+        </View>
+
+        <View
+          sx={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            mt: 14,
+            pt: 12,
+            borderTopWidth: 1,
+            borderColor: '#e5e7eb',
+          }}
+        >
+          <View sx={{ flexDirection: 'row', alignItems: 'center' }}>
+            <MaterialCommunityIcons name="bike" size={16} color="#6b7280" />
+            <Text sx={{ ml: 6, fontSize: 12, color: '#6b7280' }}>
+              {ride.vehicle_type.toUpperCase()} • {ride.distance} km
+            </Text>
+          </View>
+
+          <View sx={{ flexDirection: 'row', alignItems: 'center' }}>
+            <MaterialCommunityIcons
+              name="credit-card-outline"
+              size={16}
+              color="#6b7280"
+            />
+            <Text sx={{ ml: 6, fontSize: 12, color: '#6b7280' }}>
+              {ride.payment_method} ({ride.payment_status})
+            </Text>
+          </View>
+        </View>
+      </View>
+    </Pressable>
+  );
+};

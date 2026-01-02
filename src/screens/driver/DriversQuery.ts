@@ -8,14 +8,20 @@ export const getDriversDetails = async (id: String) => {
   return res.data;
 };
 
-export const getDriversTripDetails = async (
-  id: string,
-  duration: string,
-  rideStatus: string,
+export const getEarningDetails = async (
+  id: String,
+  range: string,
+  type: string,
 ) => {
-  console.log('routes comes here');
-  const res = await Api.get(`/driver/getdriverTripdata`, {
-    params: { id, duration, rideStatus },
+  const res = await Api.get(`/driver/getdriverearning`, {
+    params: { id, range, type },
+  });
+  return res.data;
+};
+
+export const getDriversTripDetails = async (id: string, period: string) => {
+  const res = await Api.get(`/driver/getdriverTripsdata`, {
+    params: { id, period },
   });
   return res.data;
 };
@@ -39,10 +45,10 @@ export const getRideInfo = async (rideId: string) => {
 };
 
 export const getDriverTransactions = async (id: string) => {
-  const res = await Api.get('/driver/transactions', {
+  const res = await Api.get('/driver/driver-wallet-transactions', {
     params: { id },
   });
-  return res.data;
+  return res.data.data;
 };
 
 // export const getDriverGps = async (id: string) => {

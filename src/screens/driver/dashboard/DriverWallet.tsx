@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
@@ -6,7 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { View, Text, Pressable, TextInput } from 'dripsy';
+import { View, Text, Pressable, TextInput, ActivityIndicator } from 'dripsy';
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -14,10 +14,93 @@ import {
   Wallet,
 } from 'lucide-react-native';
 import { useToast } from '../../../context/ToastContext';
-import RazorpayCheckout from '../utils/RazorpayCheckout';
 import Api from '../../../api/Api';
+import RazorpayCheckout from 'react-native-razorpay';
+import { useAuth } from '../../../context/AuthContext';
+import WithdrawalModal from '../utils/WithdrawalModal';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { getDriverTransactions, getWalletData } from '../DriversQuery';
+import { DriverWebSocket } from '../../../websocket/websocket-manager';
+
+interface PaymentPayload {
+  amount: number;
+  orderId: string;
+}
+
+interface WalletTransaction {
+  id: string;
+  userId: string;
+  type: 'credit' | 'debit';
+  amount: string | number;
+  description: string;
+  category?: string;
+  rideId?: string;
+  paymentId?: string;
+  status?: string;
+  created_at: string;
+}
+
+const StatCard = ({ icon: Icon, color, bg, value, label }: any) => (
+  <View
+    sx={{
+      flexBasis: '48%',
+      backgroundColor: bg,
+      borderRadius: 12,
+      padding: 16,
+      mb: 16,
+    }}
+  >
+    <Icon width={22} height={22} color={color} />
+
+    <Text
+      sx={{
+        fontSize: 18,
+        fontWeight: 'bold',
+        mt: 8,
+        color: '#111',
+      }}
+    >
+      {value}
+    </Text>
+
+    <Text
+      sx={{
+        fontSize: 13,
+        color: '#555',
+        mt: 4,
+      }}
+    >
+      {label}
+    </Text>
+  </View>
+);
+
+const FilterButton = ({ label, active, onPress }: any) => (
+  <Pressable
+    onPress={onPress}
+    style={{
+      backgroundColor: active ? '#1E40AF' : '#E0E7FF',
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      borderRadius: 20,
+      marginRight: 8,
+    }}
+  >
+    <Text
+      style={{
+        color: active ? '#FFFFFF' : '#1E40AF',
+        fontWeight: '600',
+        fontSize: 14,
+      }}
+    >
+      {label}
+    </Text>
+  </Pressable>
+);
 
 export default function DriverWallet() {
+  const { id } = useAuth();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('Recent Transactions');
   const [activeFilter, setActiveFilter] = useState('All Time');
   const filters = ['Today', 'This Month', 'All Time'];
@@ -26,12 +109,120 @@ export default function DriverWallet() {
   const [visible, setVisible] = useState(false);
   const { showToast } = useToast();
   const [amountError, setAmountError] = useState(false);
-  const [openRazorpay, setOpenRazorpay] = useState(false);
+  const [paymentPayload, setPaymentPayload] = useState<PaymentPayload | null>(
+    null,
+  );
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+
+  const {
+    data: walletData,
+    isLoading,
+    error: walletError,
+    refetch: refetchWallet,
+  } = useQuery({
+    queryKey: ['/api/drivers', id, 'wallet', 'driver_wallet'],
+    queryFn: () => getWalletData(id),
+    refetchInterval: false,
+    enabled: !!id,
+    retry: false,
+  });
+  console.log(walletData);
+  const {
+    data: transactions = [],
+    error: transactionsError,
+    refetch: refetchTransactions,
+  } = useQuery<WalletTransaction[]>({
+    queryKey: ['/api/drivers', id, 'wallet', 'transactions'],
+    queryFn: () => getDriverTransactions(id),
+    refetchInterval: false,
+    enabled: !!id,
+    retry: false,
+  });
+
+  console.log(transactions);
+  // REAL-TIME: WebSocket wallet update listener for drivers
+  useEffect(() => {
+    if (!id) return;
+    console.log(
+      '[DRIVER WALLET] Setting up real-time wallet update listener...',
+    );
+    // Connect to WebSocket
+    DriverWebSocket.connect(id);
+
+    // Listen for wallet balance updates
+    const removeWalletListener = DriverWebSocket.onWalletUpdate(message => {
+      console.log('💰 [DRIVER] Real-time wallet update received!', message);
+
+      // // Show success notification
+      // toast({
+      //   title: "💰 Wallet Updated!",
+      //   description: `₹${message.amount} added successfully. New balance: ₹${message.newBalance}`,
+      //   duration: 5000,
+      // });
+
+      // Instantly refresh wallet data
+      queryClient.invalidateQueries({
+        queryKey: ['/api/drivers', id, 'wallet'],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['/api/drivers', id, 'wallet', 'transactions'],
+      });
+      console.log(' [DRIVER] Wallet data refreshed automatically');
+    });
+
+    // Cleanup function
+    return () => {
+      console.log('🔄 [DRIVER WALLET] WebSocket cleanup');
+      removeWalletListener();
+    };
+  }, [id, queryClient]);
+
+  // Listen for WebSocket wallet updates via the existing WebSocket manager
+  useEffect(() => {
+    if (id && showWithdrawModal) {
+      console.log(
+        '🔄 [DRIVER WALLET] Setting up real-time wallet update listener...',
+      );
+
+      // Listen for wallet_balance_update messages using the imported DriverWebSocket
+      const cleanup = DriverWebSocket.onWalletUpdate((data: any) => {
+        console.log('💰 [WALLET PAGE] Received real-time wallet update:', data);
+        if (data.driverId === id) {
+          console.log('📊 [WALLET PAGE] Processing wallet balance update...');
+
+          // Force refresh wallet data immediately
+          queryClient.invalidateQueries({
+            queryKey: ['/api/drivers', id, 'wallet'],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ['/api/drivers', id, 'wallet', 'transactions'],
+          });
+
+          // Auto-close payment dialog and show success
+          console.log(
+            '🎉 [WALLET PAGE] Auto-closing payment dialog after successful payment',
+          );
+          setShowWithdrawModal(false);
+          setAmount('');
+          // toast({
+          //   title: "Payment Successful!",
+          //   description: `₹${data.amount} added to your wallet successfully`,
+          // });
+        }
+      });
+
+      return () => {
+        console.log('🧹 [DRIVER WALLET] Cleaning up wallet update listener');
+        cleanup?.();
+      };
+    }
+  }, [id, showWithdrawModal, queryClient]);
 
   const onProceedPayment = async (amount: any) => {
     try {
       const numAmount = Number(amount);
-
+      console.log('i am here at onproceed payment ', numAmount);
       if (!numAmount || numAmount < 100) {
         setAmountError(true);
         showToast(
@@ -40,68 +231,70 @@ export default function DriverWallet() {
         );
         return;
       }
-      // setAmountError(false);
-      // setOpenRazorpay(true);
+
+      if (amount > 50000) {
+        setAmountError(true);
+        showToast('Maximum amount per transaction is ₹50,000', 'error');
+        return;
+      }
       try {
-        const res = await Api.post(`/payment/driver-wallet/create-order`, {
-          params: { amount },
+        setPaymentLoading(true);
+        const res = await Api.post('/payment/driver-wallet/create-order', {
+          amount,
         });
         console.log(res?.data);
-      } catch (error) {}
-    } catch (error) {}
-  };
+        if (res.data.success) {
+          setPaymentPayload({
+            amount: amount,
+            orderId: res.data.id,
+          });
+          const pay = () => {
+            const options = {
+              description: 'Add Money to Wallet',
+              key: 'rzp_live_R7Hfkqef2YC7Ca',
+              amount: numAmount * 100,
+              currency: res.data.order.currency,
+              order_id: res.data.order.id,
+              name: 'UKDrive',
+              prefill: {
+                email: 'support@ukdrive.in',
+                contact: '9876543210',
+                name: 'UKDrive',
+              },
+              notes: {
+                userId: id,
+                userType: 'driver',
+              },
+              theme: { color: '#760496ff' },
+            };
 
-  const transactions = [
-    {
-      id: '#e81f8590',
-      desc: 'Platform fee (15%) for cash ride #db64ab6b',
-      date: 'Nov 05, 2025 • 21:55',
-      amount: '-₹4.35',
-      status: 'completed',
-    },
-    {
-      id: '#ca2477ea',
-      desc: 'Platform fee (15%) for cash ride #4c473c84',
-      date: 'Nov 05, 2025 • 20:25',
-      amount: '-₹4.35',
-      status: 'completed',
-    },
-    {
-      id: '#af561de6',
-      desc: 'Platform fee (15%) for cash ride #56462f26',
-      date: 'Nov 05, 2025 • 03:41',
-      amount: '-₹8.10',
-      status: 'completed',
-    },
-    {
-      id: '#83a1f87cdd',
-      desc: 'Platform fee (15%) for cash ride #6b472f61',
-      date: 'Nov 05, 2025 • 01:20',
-      amount: '-₹4.35',
-      status: 'completed',
-    },
-    {
-      id: '#83a1f87ddc',
-      desc: 'Platform fee (15%) for cash ride #6b472f61',
-      date: 'Nov 05, 2025 • 01:20',
-      amount: '-₹4.35',
-      status: 'completed',
-    },
-    {
-      id: 'dd',
-      desc: 'Platform fee (15%) for cash ride #6b472f61',
-      date: 'Nov 05, 2025 • 01:20',
-      amount: '-₹4.35',
-      status: 'completed',
-    },
-    {
-      id: '#83a1ssf87c',
-      desc: 'Platform fee (15%) for cash ride #6b472f61',
-      date: 'Nov 05, 2025 • 01:20',
-      amount: '-₹4.35',
-      status: 'completed',
-    },
-  ];
+            RazorpayCheckout.open(options)
+              .then(async (data: any) => {
+                console.log('Payment success:', data);
+                const res = await Api.post(
+                  '/payment/driver-wallet/payment-success',
+                  {
+                    razorpay_order_id: data?.razorpay_order_id,
+                    razorpay_payment_id: data?.razorpay_payment_id,
+                    razorpay_signature: data?.razorpay_signature,
+                  },
+                );
+                console.log(res);
+              })
+              .catch((error: any) => {
+                console.log('Payment failed:', error);
+              })
+              .finally(() => setPaymentLoading(false));
+          };
+          pay();
+        }
+      } catch (error) {
+        setPaymentLoading(false);
+      }
+    } catch (error) {
+      setPaymentLoading(false);
+    }
+  };
 
   return (
     <>
@@ -139,7 +332,7 @@ export default function DriverWallet() {
             <View>
               <Text sx={{ color: '#666', fontSize: 14 }}>Current Balance</Text>
               <Text sx={{ fontSize: 28, fontWeight: 'bold', color: '#1F8B4C' }}>
-                ₹54.80
+                {walletData?.data?.balance}
               </Text>
             </View>
             <View
@@ -159,23 +352,24 @@ export default function DriverWallet() {
               sx={{
                 flex: 1,
                 borderWidth: 1,
-                borderColor: '#C7A2E2',
+                borderColor: '#3b0462ff',
                 borderRadius: 12,
                 alignItems: 'center',
                 py: 10,
                 mr: 6,
               }}
             >
-              <Text sx={{ color: '#8B4BCC', fontWeight: 'bold' }}>
+              <Text sx={{ color: '#3d0575ff', fontWeight: 'bold' }}>
                 + Add Money
               </Text>
             </Pressable>
 
             <Pressable
+              onPress={() => setShowWithdrawModal(true)}
               sx={{
                 flex: 1,
                 borderWidth: 1,
-                borderColor: '#C7A2E2',
+                borderColor: '#3b0462ff',
                 borderRadius: 12,
                 alignItems: 'center',
                 py: 10,
@@ -192,7 +386,7 @@ export default function DriverWallet() {
         <View
           sx={{
             flexDirection: 'row',
-            backgroundColor: '#E7D4F3',
+            backgroundColor: '#7f29b4ff',
             borderRadius: 12,
             overflow: 'hidden',
             mb: 20,
@@ -241,20 +435,33 @@ export default function DriverWallet() {
                 <View sx={{ flex: 1 }}>
                   <Text sx={{ fontWeight: 'bold' }}>{tx.id}</Text>
                   <Text sx={{ color: '#666', mt: 2, fontSize: 13 }}>
-                    {tx.desc}
+                    {tx.description}
                   </Text>
                   <Text sx={{ color: '#999', mt: 2, fontSize: 13 }}>
-                    {tx.date}
+                    {new Date(tx.created_at).toLocaleString('en-IN', {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
                   </Text>
                 </View>
 
                 <View sx={{ alignItems: 'flex-end' }}>
-                  <Text sx={{ color: '#D32F2F', fontWeight: 'bold', mb: 4 }}>
+                  <Text
+                    sx={{
+                      color: tx.type === 'credit' ? '#47eb7dff' : '#cf3030ff',
+                      fontWeight: 'bold',
+                      mb: 4,
+                    }}
+                  >
                     {tx.amount}
                   </Text>
                   <View
                     sx={{
-                      backgroundColor: '#E0E8FF',
+                      backgroundColor:
+                        tx.type === 'credit' ? '#47eb7dff' : '#cf3030ff',
                       borderRadius: 8,
                       px: 8,
                       py: 4,
@@ -262,12 +469,12 @@ export default function DriverWallet() {
                   >
                     <Text
                       sx={{
-                        color: '#1E40AF',
+                        color: '#fbfbfcff',
                         fontWeight: 'bold',
                         fontSize: 12,
                       }}
                     >
-                      {tx.status}
+                      {tx.type}
                     </Text>
                   </View>
                 </View>
@@ -340,7 +547,6 @@ export default function DriverWallet() {
                     ))}
                   </View>
 
-                  {/* Custom Amount */}
                   <Text sx={{ mt: 10, mb: 6, color: '#444' }}>
                     Custom Amount
                   </Text>
@@ -374,22 +580,32 @@ export default function DriverWallet() {
                       onPress={() => onProceedPayment(amount)}
                       sx={{
                         flex: 1,
-                        bg: '#d7c6ff',
+                        bg: '#6b3fd1ff',
                         py: 14,
                         borderRadius: 12,
                         alignItems: 'center',
                         mr: 8,
+                        opacity: paymentLoading ? 0.6 : 1,
                       }}
+                      disabled={paymentLoading}
                     >
-                      <Text sx={{ fontSize: 16, fontWeight: '600' }}>
-                        Proceed to Payment
-                      </Text>
+                      {paymentLoading ? (
+                        <ActivityIndicator color="#fff" />
+                      ) : (
+                        <Text
+                          sx={{
+                            color: 'white',
+                            fontSize: 16,
+                            fontWeight: '600',
+                          }}
+                        >
+                          Proceed to Payment
+                        </Text>
+                      )}
                     </Pressable>
 
                     <Pressable
-                      onPress={() => {
-                        setVisible(false);
-                      }}
+                      onPress={() => setVisible(false)}
                       sx={{
                         width: 90,
                         borderWidth: 1,
@@ -405,29 +621,26 @@ export default function DriverWallet() {
                 </View>
               </View>
             </Modal>
-            {openRazorpay && (
-              <RazorpayCheckout
-                amount={10}
-                onSuccess={(data: any) => {
-                  console.log('Payment Success:', data);
-                  setOpenRazorpay(false);
-                }}
-                onCancel={() => {
-                  console.log('Payment Cancelled');
-                  setOpenRazorpay(false);
-                }}
+            {showWithdrawModal && (
+              <WithdrawalModal
+                visible={showWithdrawModal}
+                onClose={() => setShowWithdrawModal(false)}
+                balance={100}
+                id={id}
               />
             )}
           </View>
         )}
 
-        {/* {activeTab === 'Analytics' && (
+        {activeTab === 'Analytics' && (
           <>
             <View
               sx={{
                 flexDirection: 'row',
-                justifyContent: 'space-between',
+                gap: 10,
                 mb: 20,
+                justifyContent: 'center',
+                alignItems: 'center',
               }}
             >
               {filters.map(f => (
@@ -439,7 +652,6 @@ export default function DriverWallet() {
                 />
               ))}
             </View>
-
             <View
               sx={{
                 flexDirection: 'row',
@@ -449,36 +661,35 @@ export default function DriverWallet() {
             >
               <StatCard
                 icon={ArrowUpRight}
-                color="#D32F2F"
+                color="#1E9C56"
                 bg="#E6F8EB"
-                value="₹2204.15"
+                value={walletData?.data?.balance}
                 label="Total Income"
               />
               <StatCard
                 icon={Clock}
-                color="#D32F2F"
+                color="#1E40AF"
                 bg="#E8F1FE"
-                value="68"
+                value={transactions?.length}
                 label="Total Transactions"
               />
               <StatCard
                 icon={ArrowDownRight}
                 color="#D32F2F"
                 bg="#FDECEC"
-                value="₹2149.35"
+                value={walletData?.data?.totalExpenses}
                 label="Total Expenses"
               />
               <StatCard
                 icon={Wallet}
-                color="#D32F2F"
+                color="#0F6B32"
                 bg="#EAF9EF"
-                value="₹54.80"
+                value={walletData?.data?.totalEarnings}
                 label="Net Earnings"
               />
             </View>
           </>
         )}
-    */}
       </ScrollView>
     </>
   );
